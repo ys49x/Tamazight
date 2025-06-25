@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Chatbot Simple</title>
+    <style>
+        body { font-family: Arial; max-width: 600px; margin: auto; padding: 20px; }
+        #chatbox { border: 1px solid #ccc; padding: 10px; height: 300px; overflow-y: scroll; }
+        .message { margin: 5px 0; }
+        .user { color: blue; }
+        .bot { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Chatbot</h1>
+    <div id="chatbox"></div>
+    <input type="text" id="userInput" placeholder="Tapez un message..." autofocus>
+    <button onclick="sendMessage()">Envoyer</button>
+
+    <script>
+        async function sendMessage() {
+            const input = document.getElementById("userInput");
+            const message = input.value;
+            if (!message.trim()) return;
+
+            const chatbox = document.getElementById("chatbox");
+            chatbox.innerHTML += `<div class="message user"><strong>Vous:</strong> ${message}</div>`;
+
+            const response = await fetch("/chat", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({ message: message })
+            });
+            const data = await response.json();
+
+            chatbox.innerHTML += `<div class="message bot"><strong>Bot:</strong> ${data.response}</div>`;
+            chatbox.scrollTop = chatbox.scrollHeight;
+            input.value = "";
+        }
+
+        // Envoi avec la touche Entrée
+        document.getElementById("userInput").addEventListener("keypress", function (e) {
+            if (e.key === "Enter") sendMessage();
+        });
+    </script>
+</body>
+</html>
+
