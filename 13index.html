@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>ⵥ-Ai</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Sofia">
+  <style>
+    /* Thème Windows 7 Aero */
+    :root {
+      --primary-color: #0078D7;
+      --primary-hover: #0066BB;
+      --text-color: #000000;
+      --bg-color: #DCE6F2;
+      --chat-bg: rgba(255, 255, 255, 0.7);
+      --user-message: rgba(229, 241, 251, 0.9);
+      --bot-message: rgba(240, 240, 240, 0.9);
+      --container-bg: rgba(255, 255, 255, 0.6);
+      --border-color: #A5B3C5;
+      --suggestion-bg: rgba(229, 241, 251, 0.9);
+      --suggestion-hover: rgba(201, 224, 247, 0.9);
+      --glass-effect: blur(8px);
+      --aero-blue: #DCE6F2;
+      --aero-blue-dark: #B9D3EC;
+    }
+
+    .dark-mode {
+      --primary-color: #4B9CD3;
+      --primary-hover: #3A8BC8;
+      --text-color: #E5E5E5;
+      --bg-color: #1A1A1A;
+      --chat-bg: rgba(30, 30, 30, 0.7);
+      --user-message: rgba(0, 90, 158, 0.7);
+      --bot-message: rgba(50, 50, 50, 0.7);
+      --container-bg: rgba(40, 40, 40, 0.6);
+      --border-color: #555555;
+      --suggestion-bg: rgba(0, 90, 158, 0.7);
+      --suggestion-hover: rgba(0, 70, 128, 0.7);
+      --aero-blue: #2D3A4B;
+      --aero-blue-dark: #1A2A3A;
+    }
+
+    /* Base Responsive */
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', 'Segoe WP', Tahoma, Arial, sans-serif;
+      color: var(--text-color);
+      background-color: var(--bg-color);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: background-color 0.3s, color 0.3s;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      opacity: 0.9;
+    }
+
+    /* Effet Aero Glass */
+    .container {
+      width: 100%;
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 15px;
+      background-color: var(--container-bg);
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2),
+                 inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      backdrop-filter: var(--glass-effect);
+      -webkit-backdrop-filter: var(--glass-effect);
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Titre style Windows 7 */
+    h2 {
+      font-family: "Segoe UI Light", "Segoe WP", sans-serif;
+      text-align: center;
+      color: var(--primary-color);
+      margin: 0 0 15px 0;
+      font-weight: 300;
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
+      padding-bottom: 5px;
+      border-bottom: 1px solid rgba(0, 120, 215, 0.3);
+    }
+
+    /* Zone de chat style Aero */
+    #chat {
+            max-height: 50vh;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 10px;
+      flex: 1;
+      overflow-y: auto;
+      background-color: var(--chat-bg);
+      margin-bottom: 10px;
+      min-height: 50vh;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1),
+                 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+
+    /* Messages */
+    #chat div {
+      margin-bottom: 10px;
+      padding: 8px 12px;
+      border-radius: 4px;
+      line-height: 1.4;
+    }
+
+    #chat div b {
+      color: var(--primary-color);
+    }
+
+    /* Messages utilisateur */
+    #chat div:nth-child(odd) {
+      background-color: var(--user-message);
+      border-left: 3px solid var(--primary-color);
+    }
+
+    /* Messages bot */
+    #chat div:nth-child(even) {
+      background-color: var(--bot-message);
+      border-left: 3px solid #888;
+    }
+
+    /* Groupe de saisie */
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    #userInput {
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-size: clamp(0.9rem, 3vw, 1rem);
+      background-color: rgba(255, 255, 255, 0.8);
+      color: var(--text-color);
+      width: 100%;
+      box-sizing: border-box;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Boutons style Windows 7 */
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    
+    .button-group-row {
+      display: flex;
+      width: 100%;
+      gap: 8px;
+    }
+    
+    .button-group button {
+      flex: 1 1 auto;
+      min-width: 100px;
+      padding: 8px 12px;
+      white-space: nowrap;
+      background: linear-gradient(to bottom, #F6F6F6 0%, #E5E5E5 100%);
+      border: 1px solid #A5B3C5;
+      color: #000;
+      border-radius: 4px;
+      font-size: clamp(0.8rem, 3vw, 0.9rem);
+      font-weight: bold;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1),
+                 inset 0 0 1px rgba(255, 255, 255, 0.8);
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    
+    .button-group button:hover {
+      background: linear-gradient(to bottom, #FFFFFF 0%, #F0F0F0 100%);
+      border-color: #8BA2C4;
+    }
+
+    .button-group button:active {
+      background: linear-gradient(to bottom, #E5E5E5 0%, #D5D5D5 100%);
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    /* Boutons spéciaux */
+    #toggleAutoTTS, #speakBtn, #stopSpeakBtn {
+      background: linear-gradient(to bottom, var(--aero-blue) 0%, var(--aero-blue-dark) 100%);
+      border-color: #8BA2C4;
+      color: #000;
+    }
+
+    #toggleAutoTTS:hover, #speakBtn:hover, #stopSpeakBtn:hover {
+      background: linear-gradient(to bottom, #F0F7FC 0%, #E0EFF9 100%);
+    }
+
+    /* Contrôles TTS */
+    .tts-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      width: 100%;
+    }
+    
+    .tts-controls > * {
+      flex: 1 1 auto;
+      min-width: 60px;
+    }
+    
+    #voiceSelect {
+      min-width: 120px;
+      padding: 8px;
+      font-size: clamp(0.8rem, 3vw, 0.9rem);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background-color: rgba(255, 255, 255, 0.8);
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Suggestions */
+    #suggestions div {
+      background: linear-gradient(to bottom, var(--suggestion-bg) 0%, var(--aero-blue-dark) 100%);
+      border: 1px solid var(--border-color);
+      padding: 8px 12px;
+      border-radius: 4px;
+      margin-bottom: 5px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    #suggestions div:hover {
+      background: linear-gradient(to bottom, var(--suggestion-hover) 0%, #E0EFF9 100%);
+    }
+
+    /* Éléments spécifiques Windows 7 */
+    .theme-toggle {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(to bottom, #F6F6F6 0%, #E5E5E5 100%);
+      border: 1px solid #A5B3C5;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+    }
+
+    #viewCounter {
+      position: fixed;
+      bottom: 5px;
+      right: 5px;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      background: linear-gradient(to bottom, var(--aero-blue) 0%, var(--aero-blue-dark) 100%);
+      border: 1px solid #8BA2C4;
+      border-radius: 4px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Media Queries pour mobile */
+    @media (max-width: 600px) {
+      .container {
+        padding: 10px;
+        width: 92%;
+        margin: 8px auto;
+      }
+      
+      .button-group-row {
+        flex-direction: column;
+      }
+      
+      .button-group button {
+        width: 100%;
+        min-width: unset;
+        padding: 10px;
+      }
+      
+      .tts-controls {
+        flex-direction: column;
+      }
+      
+      #voiceSelect {
+        width: 100%;
+        min-width: unset;
+      }
+      
+      #chat {
+        min-height: 150px;
+        padding: 8px;
+      }
+      
+      #userInput {
+        padding: 8px 10px;
+      }
+    }
+
+    /* Pour très petits appareils */
+    @media (max-width: 400px) {
+      :root {
+        --glass-effect: blur(4px);
+      }
+      
+      h2 {
+        font-size: 1.3rem;
+      }
+      
+      .button-group button {
+        font-size: 0.7rem;
+        padding: 6px 8px;
+      }
+    }
+  </style>   
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle">🌓</button>
+  <div class="container">
+    <h2>Tamaⵥight Ai</h2>
+    <div id="chat"></div>
+    <div class="input-group">
+      <input type="text" id="userInput" placeholder="Tapez un message..." autocomplete="off">
+      <div id="suggestions"></div>
+      
+      <div class="button-group">
+        <div class="button-group-row">
+          <div class="main-actions">
+            <button onclick="sendMessage()">Envoyer</button>
+            <button onclick="promptSearch()">🔍 Recherche</button>
+          </div>
+          <button id="toggleAutoTTS">Auto TTS: OFF</button>
+          <button onclick="resetHistory()">Reset</button>
+        </div>
+        
+        <div class="button-group-row">
+          <div class="tts-controls">
+            <button id="speakBtn" title="Lire">🔊</button>
+            <button id="stopSpeakBtn" title="Arrêter">⏹</button>
+            <select id="voiceSelect"></select>
+            <input type="range" id="rateControl" min="0.5" max="2" step="0.1" value="1" title="Vitesse">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Compteur de vues -->
+  <div id="viewCounter">ⵢⴰⵏ ⵓⵣⵔⴰⵔ: <span id="views">0</span></div>
+
+  <!-- Le reste du code JavaScript reste inchangé -->
+  <script>
+    // Charger l'image de fond
+    const images = ["2.jpg"];
+    const randomBg = images[Math.floor(Math.random() * images.length)];
+    document.body.style.backgroundImage = `url(${randomBg})`;
+
+    // Compteur de vues (localStorage)
+    if (localStorage.getItem('views')) {
+      let views = parseInt(localStorage.getItem('views')) + 1;
+      localStorage.setItem('views', views);
+      document.getElementById('views').textContent = views;
+    } else {
+      localStorage.setItem('views', 1);
+      document.getElementById('views').textContent = 1;
+    }
+
+    // Gestion du thème
+    const themeToggle = document.getElementById('themeToggle');
+    const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+
+    function applyDarkMode(isDark) {
+      document.body.classList.toggle('dark-mode', isDark);
+      themeToggle.textContent = isDark ? '☀️' : '🌙';
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    }
+
+    function checkTheme() {
+      const savedTheme = localStorage.getItem('theme');
+      const systemDark = prefersDarkScheme.matches;
+      applyDarkMode(savedTheme ? savedTheme === 'dark' : systemDark);
+    }
+
+    themeToggle.addEventListener('click', () => applyDarkMode(!document.body.classList.contains('dark-mode')));
+    prefersDarkScheme.addEventListener('change', checkTheme);
+    checkTheme();
+
+    // Gestion du chat
+    function sendMessage() {
+      const input = document.getElementById('userInput');
+      const message = input.value.trim();
+      
+      if (message.startsWith("/search ")) {
+        const query = message.substring(7).trim();
+        if (query) webSearch(query, 5);
+        input.value = '';
+        return;
+      }
+      
+      if (!message) return;
+
+      const chat = document.getElementById('chat');
+      chat.innerHTML += `<div><b>Vous :</b> ${message}</div>`;
+      
+      fetch('chatbot.php', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'message=' + encodeURIComponent(message)
+      })
+      .then(response => response.text())
+      .then(data => {
+        chat.innerHTML += `<div><b>Bot :</b> ${data}</div>`;
+        input.value = '';
+        chat.scrollTop = chat.scrollHeight;
+        if (autoSpeak) speak(data);
+      });
+    }
+
+    // Fonction de recherche web
+    function promptSearch() {
+      const query = prompt("Entrez votre recherche web:");
+      if (query) {
+        document.getElementById('userInput').value = `/search ${query}`;
+        sendMessage();
+      }
+    }
+
+    async function webSearch(query, limit = 5) {
+      const chat = document.getElementById('chat');
+      const searchId = 'search-' + Date.now();
+      
+      chat.innerHTML += `
+        <div class="generating" id="${searchId}">
+          🔍 Recherche web pour: "${query}"...
+          <div class="progress-bar"><div class="progress"></div></div>
+        </div>
+      `;
+
+      try {
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(`https://www.bing.com/search?q=${query}&count=${limit}`)}`;
+        const response = await fetch(proxyUrl);
+        
+        if (!response.ok) throw new Error('Erreur réseau');
+        
+        const data = await response.json();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(data.contents, 'text/html');
+        
+        const results = Array.from(doc.querySelectorAll('.b_algo')).slice(0, limit);
+        
+        let htmlResults = `<div><b>Résultats web pour "${query}":</b><ol>`;
+        
+        results.forEach(item => {
+          const title = item.querySelector('h2')?.textContent || 'Sans titre';
+          const link = item.querySelector('a')?.href || '#';
+          const desc = item.querySelector('.b_caption p')?.textContent || 'Aucune description';
+          
+          htmlResults += `
+            <li>
+              <a href="${link}" target="_blank" rel="noopener">${title}</a>
+              <p>${desc}</p>
+            </li>
+          `;
+        });
+        
+        htmlResults += `</ol><small>Source: Bing via proxy CORS</small></div>`;
+        document.getElementById(searchId).outerHTML = htmlResults;
+        
+      } catch (error) {
+        document.getElementById(searchId).innerHTML = `
+          <div style="color:red">
+            Erreur: ${error.message}<br>
+            <small>Essayez une recherche plus simple ou réessayez plus tard</small>
+          </div>
+        `;
+      }
+    }
+
+    // Suggestions
+    const input = document.getElementById('userInput');
+    const suggestionsBox = document.getElementById('suggestions');
+
+    input.addEventListener('input', () => {
+      const query = input.value.trim();
+      if (query.length < 1) {
+        suggestionsBox.innerHTML = '';
+        return;
+      }
+
+      fetch('suggestions.php?term=' + encodeURIComponent(query))
+        .then(res => res.json())
+        .then(data => {
+          suggestionsBox.innerHTML = data.map(item => 
+            `<div onclick="this.parentNode.innerHTML='';document.getElementById('userInput').value='${item.replace(/'/g, "\\'")}'">${item}</div>`
+          ).join('');
+        });
+    });
+
+    function resetHistory() {
+      fetch('reset.php').then(() => document.getElementById('chat').innerHTML = '');
+    }
+
+    // Gestion TTS
+    let ttsEnabled = true;
+    let voices = [];
+    let currentUtterance = null;
+    let autoSpeak = localStorage.getItem('autoTTS') === 'true';
+
+    document.addEventListener('DOMContentLoaded', initTTS);
+
+    function initTTS() {
+      if (!('speechSynthesis' in window)) {
+        console.warn('TTS non supporté');
+        ttsEnabled = true;
+        return;
+      }
+
+      speechSynthesis.onvoiceschanged = populateVoiceList;
+      if (speechSynthesis.getVoices().length > 0) populateVoiceList();
+
+      document.getElementById('toggleAutoTTS').addEventListener('click', toggleAutoTTS);
+      document.getElementById('speakBtn').addEventListener('click', speakLastResponse);
+      document.getElementById('stopSpeakBtn').addEventListener('click', stopSpeaking);
+      document.getElementById('voiceSelect').addEventListener('change', setVoice);
+      document.getElementById('rateControl').addEventListener('input', setRate);
+      document.getElementById('userInput').addEventListener('keypress', e => e.key === 'Enter' && sendMessage());
+    }
+
+    function populateVoiceList() {
+      voices = speechSynthesis.getVoices();
+      const voiceSelect = document.getElementById('voiceSelect');
+      voiceSelect.innerHTML = '';
+      
+      const preferredVoices = [
+        ...voices.filter(v => v.lang.includes('fr')),
+        ...voices.filter(v => v.lang.includes('ar')),
+        ...voices
+      ].filter((v, i, a) => a.findIndex(t => t.name === v.name) === i);
+
+      preferredVoices.forEach(voice => {
+        const option = document.createElement('option');
+        option.textContent = `${voice.name} (${voice.lang})`;
+        option.setAttribute('data-voice', voice.name);
+        voiceSelect.appendChild(option);
+      });
+    }
+
+    function speak(text) {
+      if (!ttsEnabled) return;
+      stopSpeaking();
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = text.match(/[\u2D30-\u2D7F]/) ? 'ar-MA' : 'fr-FR';
+      utterance.rate = parseFloat(localStorage.getItem('ttsRate')) || 1;
+      
+      const selectedVoice = document.getElementById('voiceSelect').selectedOptions[0];
+      if (selectedVoice) {
+        const voice = voices.find(v => v.name === selectedVoice.getAttribute('data-voice'));
+        if (voice) utterance.voice = voice;
+      }
+      
+      currentUtterance = utterance;
+      speechSynthesis.speak(utterance);
+    }
+
+    function stopSpeaking() {
+      speechSynthesis.cancel();
+      currentUtterance = null;
+    }
+
+    function speakLastResponse() {
+      const messages = document.getElementById('chat').querySelectorAll('div');
+      if (messages.length > 0) {
+        speak(messages[messages.length - 1].textContent.replace('Bot : ', ''));
+      }
+    }
+
+    function toggleAutoTTS() {
+      autoSpeak = !autoSpeak;
+      localStorage.setItem('autoTTS', autoSpeak);
+      document.getElementById('toggleAutoTTS').textContent = `Auto TTS: ${autoSpeak ? 'ON' : 'OFF'}`;
+    }
+
+    function setVoice() {}
+    function setRate(e) { localStorage.setItem('ttsRate', e.target.value); }
+
+    // Charger l'historique
+    window.onload = () => {
+      fetch('history.php')
+        .then(res => res.json())
+        .then(history => {
+          const chat = document.getElementById('chat');
+          history.forEach(entry => {
+            chat.innerHTML += `<div><b>Vous :</b> ${entry.user}</div><div><b>Bot :</b> ${entry.bot}</div>`;
+          });
+          chat.scrollTop = chat.scrollHeight;
+        });
+    };
+  </script>
+  <script>
+      
+   async function searchDictionary(term) {
+    const response = await fetch(`api.php?term=${encodeURIComponent(term)}`);
+    return await response.json();
+}
+
+// Exemple d'usage :
+searchDictionary("qqim").then(data => {
+    console.log(data); // Affiche les résultats dans la console
+});   
+      
+      
+  </script>
+</body>
+</html>

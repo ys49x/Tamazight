@@ -1,0 +1,2308 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <title>ⵥ-Ai Amazigh</title>
+  <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+  <style>
+    /* Thème Windows 7 Aero */
+    :root {
+      --primary-color: #0078D7;
+      --primary-hover: #0066BB;
+      --text-color: #000000;
+      --bg-color: #DCE6F2;
+      --chat-bg: rgba(255, 255, 255, 0.7);
+      --user-message: rgba(229, 241, 251, 0.9);
+      --bot-message: rgba(240, 240, 240, 0.9);
+      --container-bg: rgba(255, 255, 255, 0.6);
+      --border-color: #A5B3C5;
+      --suggestion-bg: rgba(229, 241, 251, 0.9);
+      --suggestion-hover: rgba(201, 224, 247, 0.9);
+      --glass-effect: blur(8px);
+      --aero-blue: #DCE6F2;
+      --aero-blue-dark: #B9D3EC;
+    }
+
+    .dark-mode {
+      --primary-color: #4B9CD3;
+      --primary-hover: #3A8BC8;
+      --text-color: #E5E5E5;
+      --bg-color: #1A1A1A;
+      --chat-bg: rgba(30, 30, 30, 0.7);
+      --user-message: rgba(0, 90, 158, 0.7);
+      --bot-message: rgba(50, 50, 50, 0.7);
+      --container-bg: rgba(40, 40, 40, 0.6);
+      --border-color: #555555;
+      --suggestion-bg: rgba(0, 90, 158, 0.7);
+      --suggestion-hover: rgba(0, 70, 128, 0.7);
+      --aero-blue: #2D3A4B;
+      --aero-blue-dark: #1A2A3A;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', 'Segoe WP', Tahoma, Arial, sans-serif;
+      color: var(--text-color);
+      background-color: var(--bg-color);
+      line-height: 1.6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: background-color 0.3s, color 0.3s;
+      background-size: cover;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+      opacity: 0.9;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 15px;
+      background-color: var(--container-bg);
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.4);
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.2),
+                 inset 0 1px 0 rgba(255, 255, 255, 0.3);
+      backdrop-filter: var(--glass-effect);
+      -webkit-backdrop-filter: var(--glass-effect);
+      display: flex;
+      flex-direction: column;
+    }
+
+    h2 {
+      font-family: "Segoe UI Light", "Segoe WP", sans-serif;
+      text-align: center;
+      color: var(--primary-color);
+      margin: 0 0 15px 0;
+      font-weight: 300;
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      text-shadow: 0 1px 1px rgba(255, 255, 255, 0.8);
+      padding-bottom: 5px;
+      border-bottom: 1px solid rgba(0, 120, 215, 0.3);
+    }
+
+    #chat {
+      max-height: 50vh;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 10px;
+      flex: 1;
+      overflow-y: auto;
+      background-color: var(--chat-bg);
+      margin-bottom: 10px;
+      min-height: 50vh;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1),
+                 0 1px 0 rgba(255, 255, 255, 0.4);
+    }
+
+    #chat div {
+      margin-bottom: 10px;
+      padding: 8px 12px;
+      border-radius: 4px;
+      line-height: 1.4;
+    }
+
+    #chat div b {
+      color: var(--primary-color);
+    }
+
+    #chat div:nth-child(odd) {
+      background-color: var(--user-message);
+      border-left: 3px solid var(--primary-color);
+    }
+
+    #chat div:nth-child(even) {
+      background-color: var(--bot-message);
+      border-left: 3px solid #888;
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    #userInput {
+      padding: 10px 12px;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      font-size: clamp(0.9rem, 3vw, 1rem);
+      background-color: rgba(255, 255, 255, 0.8);
+      color: var(--text-color);
+      width: 100%;
+      box-sizing: border-box;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    
+    .button-group-row {
+      display: flex;
+      width: 100%;
+      gap: 8px;
+    }
+    
+    .button-group button {
+      flex: 1 1 auto;
+      min-width: 100px;
+      padding: 8px 12px;
+      white-space: nowrap;
+      background: linear-gradient(to bottom, #F6F6F6 0%, #E5E5E5 100%);
+      border: 1px solid #A5B3C5;
+      color: #000;
+      border-radius: 4px;
+      font-size: clamp(0.8rem, 3vw, 0.9rem);
+      font-weight: bold;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1),
+                 inset 0 0 1px rgba(255, 255, 255, 0.8);
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    
+    .button-group button:hover {
+      background: linear-gradient(to bottom, #FFFFFF 0%, #F0F0F0 100%);
+      border-color: #8BA2C4;
+    }
+
+    .button-group button:active {
+      background: linear-gradient(to bottom, #E5E5E5 0%, #D5D5D5 100%);
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    #toggleAutoTTS, #speakBtn, #stopSpeakBtn {
+      background: linear-gradient(to bottom, var(--aero-blue) 0%, var(--aero-blue-dark) 100%);
+      border-color: #8BA2C4;
+      color: #000;
+    }
+
+    #toggleAutoTTS:hover, #speakBtn:hover, #stopSpeakBtn:hover {
+      background: linear-gradient(to bottom, #F0F7FC 0%, #E0EFF9 100%);
+    }
+
+    .tts-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      width: 100%;
+    }
+    
+    .tts-controls > * {
+      flex: 1 1 auto;
+      min-width: 60px;
+    }
+    
+    #voiceSelect {
+      min-width: 120px;
+      padding: 8px;
+      font-size: clamp(0.8rem, 3vw, 0.9rem);
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+      background-color: rgba(255, 255, 255, 0.8);
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    #suggestions div {
+      background: linear-gradient(to bottom, var(--suggestion-bg) 0%, var(--aero-blue-dark) 100%);
+      border: 1px solid var(--border-color);
+      padding: 8px 12px;
+      border-radius: 4px;
+      margin-bottom: 5px;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    #suggestions div:hover {
+      background: linear-gradient(to bottom, var(--suggestion-hover) 0%, #E0EFF9 100%);
+    }
+
+    .lang-indicator {
+      font-size: 0.7em;
+      padding: 2px 5px;
+      border-radius: 3px;
+      margin-left: 5px;
+      color: white;
+    }
+    
+    .lang-ber {
+      background: #4CAF50;
+    }
+    
+    .lang-fr {
+      background: #2196F3;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(to bottom, #F6F6F6 0%, #E5E5E5 100%);
+      border: 1px solid #A5B3C5;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+      z-index: 1000;
+    }
+
+    #viewCounter {
+      position: fixed;
+      bottom: 5px;
+      right: 5px;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      background: linear-gradient(to bottom, var(--aero-blue) 0%, var(--aero-blue-dark) 100%);
+      border: 1px solid #8BA2C4;
+      border-radius: 4px;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 10px;
+        width: 92%;
+        margin: 8px auto;
+      }
+      
+      .button-group-row {
+        flex-direction: column;
+      }
+      
+      .button-group button {
+        width: 100%;
+        min-width: unset;
+        padding: 10px;
+      }
+      
+      .tts-controls {
+        flex-direction: column;
+      }
+      
+      #voiceSelect {
+        width: 100%;
+        min-width: unset;
+      }
+      
+      #chat {
+        min-height: 150px;
+        padding: 8px;
+      }
+      
+      #userInput {
+        padding: 8px 10px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      :root {
+        --glass-effect: blur(4px);
+      }
+      
+      h2 {
+        font-size: 1.3rem;
+      }
+      
+      .button-group button {
+        font-size: 0.7rem;
+        padding: 6px 8px;
+      }
+    }
+  </style>   
+</head>
+<body>
+  <button class="theme-toggle" id="themeToggle">🌓</button>
+  <div class="container">
+    <h2>Tamaⵥight Ai</h2>
+    <div id="chat"></div>
+    <div class="input-group">
+      <input type="text" id="userInput" placeholder="Tapez un message..." autocomplete="off">
+      <div id="suggestions"></div>
+      
+      <div class="button-group">
+        <div class="button-group-row">
+          <div class="main-actions">
+            <button onclick="sendMessage()">Envoyer</button>
+            <button onclick="promptSearch()">🔍 Recherche</button>
+          </div>
+          <button id="toggleAutoTTS">Auto TTS: OFF</button>
+          <button onclick="resetHistory()">Reset</button>
+        </div>
+        
+        <div class="button-group-row">
+          <div class="tts-controls">
+            <button id="speakBtn" title="Lire">🔊</button>
+            <button id="stopSpeakBtn" title="Arrêter">⏹</button>
+            <select id="voiceSelect"></select>
+            <input type="range" id="rateControl" min="0.5" max="2" step="0.1" value="1" title="Vitesse">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="viewCounter">ⵢⴰⵏ ⵓⵣⵔⴰⵔ: <span id="views">0</span></div>
+
+  <script>
+    // Base de données intégrée (remplace data.json)
+    const dictionary = {
+      "how are you?": "mich thedjedh?,comment va tu?,ⵎⵉⵛ ⵝⴰⴶⵉⴷ?",
+      "ⵎⵉⵛ ⵝⴰⴶⵉⴷ": "mich thedjedh?,comment va tu?,ⵎⵉⵛ ⵝⴰⴶⵉⴷ?",
+      "mich thedjedh?": "how are you?,comment va tu?,ⵎⵉⵛ ⵝⴰⴶⵉⴷ?",
+      "mle7 cha?": "tu va biens?,ⵎⵍⵉⵃ ⵛⴰ?",
+      "ⵎⵍⵉⵃ ⵛⴰ?": "tu va biens?,mle7 cha?",
+      "tu va biens?": "ⵎⵍⵉⵃ ⵛⴰ?,mle7 cha?",
+      "kuchi mle7?": "tous va biens?,ⴽⵓⵔⵛⵉ ⵎⵍⵉⵃ?",
+      "ⴽⵓⵔⵛⵉ ⵎⵍⵉⵃ?": "tous va biens?,kuchi mle7?",
+      "tous va biens?": "ⴽⵓⵔⵛⵉ ⵎⵍⵉⵃ?,kuchi mle7?",
+      "fine": "a7amdoulilla7,kuchi meli7, trés bien merci,ⴰⵃⴰⵎⴷⵓⵍⴰⵀ ⴽⵓⵔⵛⵉ ⵎⵍⵉⵃ",
+      "ⴰⵃⴰⵎⴷⵓⵍⴰⵀ": "a7amdoulilla7,kuchi meli7, trés bien merci,fine",
+      "trés bien merci": "a7amdoulilla7,ⴰⵃⴰⵎⴷⵓⵍⴰⵀ ⴽⵓⵔⵛⵉ ⵎⵍⵉⵃ,fine",
+      "not good": "ewa chwait,pas biens,ⵉⵡⴰ ⵛⵡⴰⵢⵜ",
+      "ⵉⵡⴰ ⵛⵡⴰⵢⵜ": "ewa chwait,pas biens,not good",
+      "pas biens": "ewa chwait,pas biens,ⵉⵡⴰ ⵛⵡⴰⵢⵜ",
+      "ewa chwait": "ⵉⵡⴰ ⵛⵡⴰⵢⵜ,pas biens,not good",
+      "whats your name?": "michdham 9an ?,quel est ton nom?,ⵎⵉⵛⴷⴰⵎ ⵇⴰⵏ?",
+      "ⵎⵉⵛⴷⴰⵎ ⵇⴰⵏ?": "michdham 9an ?,quel est ton nom?,whats your name?",
+      "michdham 9an?": "whats your name?,quel est ton nom?,ⵎⵉⵛⴷⴰⵎ ⵇⴰⵏ?",
+      "quel est ton nom?": "michdham 9an,whats your name?,ⵎⵉⵛⴷⴰⵎ ⵇⴰⵏ?",
+      "my name is fadma and yours?": "isam ino simane, o isam nem/nech?",
+      "mon nom est fadma et toi?": "je m'appelle simane, et toi?,isam ino simane, o isam nem/nech?",
+      "ism ino fadma o chem?": "je m'appelle simane, et toi?,isam ino simane, o isam nem/nech?",
+      "ⵉⵙⵎ ⵉⵏⵓ ⴼⴰⴹⵎⴰ ⵓ ⵛⴰⵎ?": "ⵉⵙⴰⵎ ⵉⵏⵓ ⵙⵉⵎⴰⵏ, o isam nem/nech?",
+      "where are you from?": "manis chim?,d'ou viens tu?,where are you from?",
+      "ⵎⴰⵏⵉⵙ ⵛⴰⵎ?": "manis chim?,d'ou viens tu?,ⵎⴰⵏⵉⵙ ⵛⴰⵎ?",
+      "manis chim?": "where are you from?,d'ou viens tu?,ⵎⴰⵏⵉⵙ ⵛⴰⵎ?",
+      "d'ou viens tu?": "manis chim?,where are you from?,ⵎⴰⵏⵉⵙ ⵛⴰⵎ?",
+      "what do you want?": "min takhssadh?,que veux tu?,ⵎⵉⵏ ⵜⴰⵅⵙⵙⴰⴷ?",
+      "min takhssadh?": "what do you want?,que veux tu?,ⵎⵉⵏ ⵜⴰⵅⵙⵙⴰⴷ?",
+      "ⵎⵉⵏ ⵜⴰⵅⵙⵙⴰⴷ?": "what do you want?,que veux tu?,min takhssadh?",
+      "que veux tu?": "what do you want?,ⵎⵉⵏ ⵜⴰⵅⵙⵙⴰⴷ?,min takhssadh?",
+      "what is your main hobbies?": "ewa min t3awadhedh?,ⵉⵡⴰ ⵎⵉⵏ ⵜⵄⴰⵡⴰⴷⴰⴷ?,quoi de neuf chez vous?",
+      "ewa min t3awadhedh?": "what is your main hobbies?,ⵉⵡⴰ ⵎⵉⵏ ⵜⵄⴰⵡⴰⴷⴰⴷ?,quoi de neuf chez vous?",
+      "quoi de neuf chez vous?": "ewa min t3awadhedh?,ⵉⵡⴰ ⵎⵉⵏ ⵜⵄⴰⵡⴰⴷⴰⴷ?,quoi de neuf chez vous?",
+      "ⵉⵡⴰ ⵎⵉⵏ ⵜⵄⴰⵡⴰⴷⴰⴷ?": "ewa min t3awadhedh?,what is your main hobbies?,what is your main hobbies?",
+      "dedans": "dedans,à l'intérieur,ghar dakher",
+      "Ur ghar ttilifun": "Je n'ai pas de téléphone ⵓⵔ ⵖⴰⵔ ⵟⵉⵍⵉⴼⵓⵏ",
+      "Je n'ai pas de téléphone": "Ur ghar ttilifun ⵓⵔ ⵖⴰⵔ ⵟⵉⵍⵉⴼⵓⵏ",
+      "ⵓⵔ ⵖⴰⵔ ⵟⵉⵍⵉⴼⵓⵏ": "Je n'ai pas de téléphone Ur ghar ttilifun",
+      "i d'ont have a telefone": "Ur ghar ttilifun ⵓⵔ ⵖⴰⵔ ⵟⵉⵍⵉⴼⵓⵏ",
+      "aŷmi tinu ded asyun di imessi": "comme si tu tordais une corde dans le feu ⴰⵖⵎⵉ ⵜⵉⵏⵓ ⴷⴰⴷ ⴰⵙⵢⵓⵏ ⴷⵉ ⵉⵎⵙⵙⵉ",
+      "comme si tu tordais une corde dans le feu": "aŷmi tinu ded asyun di imessi ⴰⵖⵎⵉ ⵜⵉⵏⵓ ⴷⴰⴷ ⴰⵙⵢⵓⵏ ⴷⵉ ⵉⵎⵙⵙⵉ",
+      "ⴰⵖⵎⵉ ⵜⵉⵏⵓ ⴷⴰⴷ ⴰⵙⵢⵓⵏ ⴷⵉ ⵉⵎⵙⵙⵉ": "comme si tu tordais une corde dans le feu aŷmi tinu ded asyun di imessi",
+      "aŷmi iseppeŷ i węlaryar, istiwrhu i węlehsuar": "c'est comme celui qui danse à un aveugle,fait des youyous à un sourd , ⴰⵖⵎⵉ ⵉⵙⵒⵒⴰⵖ ⵉ ⵡⴰⵍⴰⵔⵢⴰⵔ, ⵉⵙⵜⵉⵡⵔⵀⵓ ⵉ ⵡⴻⵍⵀⵙⵓⴰⵔ",
+      "c'est comme celui qui danse à un aveugle,fait des youyous à un sourd ": "aŷmi iseppeŷ i węlaryar, istiwrhu i węlehsuar , ⴰⵖⵎⵉ ⵉⵙⵒⵒⴰⵖ ⵉ ⵡⴰⵍⴰⵔⵢⴰⵔ, ⵉⵙⵜⵉⵡⵔⵀⵓ ⵉ ⵡⴻⵍⵀⵙⵓⴰⵔ",
+      "ⴰⵖⵎⵉ ⵉⵙⵒⵒⴰⵖ ⵉ ⵡⴰⵍⴰⵔⵢⴰⵔ, ⵉⵙⵜⵉⵡⵔⵀⵓ ⵉ ⵡⴻⵍⵀⵙⵓⴰⵔ": "c'est comme celui qui danse à un aveugle,fait des youyous à un sourd , aŷmi iseppeŷ i węlaryar, istiwrhu i węlehsuar",
+      "igga yabrid": "il a aménagé une voie ⵉⴳⴳⴰ ⵢⴰⴱⵔⵉⴷ",
+      "il a aménagé une voie": "igga yabrid ⵉⴳⴳⴰ ⵢⴰⴱⵔⵉⴷ",
+      "ⵉⴳⴳⴰ ⵢⴰⴱⵔⵉⴷ": "il a aménagé une voie igga yabrid",
+      "What is Your profession": "mindi itkhadmad quelle est ta profession ⵎⵉⵏⴷⵉ ⵉⵜⵅⴰⴷⵎⴰⴷ",
+    "mindi itkhadmad": "What is Your profession quelle est ta profession ⵎⵉⵏⴷⵉ ⵉⵜⵅⴰⴷⵎⴰⴷ",
+    "quelle est ta profession": "mindi itkhadmad What is Your profession ⵎⵉⵏⴷⵉ ⵉⵜⵅⴰⴷⵎⴰⴷ",
+    "ⵎⵉⵏⴷⵉ ⵉⵜⵅⴰⴷⵎⴰⴷ": "mindi itkhadmad quelle est ta profession What is Your profession",
+    "I'm a doctor": "nech dh doctor je suis un docteur ⵏⴰⵛ ⴷ ⴷⵓⴽⵜⵓⵔ",
+    "I'm a manager": "nech dh modir je suis un manadeur ⵏⴰⵛ ⴷ ⵎⵓⴷⵉⵔ",
+    "I'm a bussines man": "nech dh tajir je suis un marchand ⵏⴰⵛ ⴷ ⵜⴰⵊⵉⵔ",
+    "ⴰⵛ ⴷ ⴷⵓⴽⵜⵓⵔ": "nech dh doctor je suis un docteur ⵏI'm a doctor",
+    "Please": "3afak ⵄⴰⴼⴰⴽ",
+    "ⵄⴰⴼⴰⴽ": "3afak Please",
+    "3afak": "ⵄⴰⴼⴰⴽ Please",
+    "Good": "Mli7 ⵎⵍⵉⵃ",
+    "Mli7": "Good ⵎⵍⵉⵃ",
+    "ⵎⵍⵉⵃ": "Good Mli7",
+    "Room": "akham ⴰⵅⴰⵎ",
+    "ⴰⵅⴰⵎ": "akham Room",
+    "akham": "Room ⴰⵅⴰⵎ",
+    "Espensive": "Yighra très cher ⵢⵉⵖⵔⴰ",
+    "ⵢⵉⵖⵔⴰ": "Yighra très chèr Espensive",
+    "très chèr": "Yighra ⵢⵉⵖⵔⴰ Espensive",
+    "Yighra": "très chèr ⵢⵉⵖⵔⴰ Espensive",
+    "It is Cheap": "Thxas pas cher ⵝⵔⵅⴰⵙ",
+    "Thxas": "It is Cheap pas cher ⵝⵔⵅⴰⵙ",
+    "pas cher": "It is Cheap Thxas ⵝⵔⵅⴰⵙ",
+    "ⵝⵔⵅⴰⵙ": "It is Cheap Thxas pas cher",
+    "What do you want to eat?": "Mintazzod Atachadh? que veux tu manger? ⵎⵉⵏ ⵜⴰⵣⵣⵓⴷ ⴰⵜⴰⵛⴷ?",
+    "Mintazzod Atachadh?": "What do you want to eat? que veux tu manger? ⵎⵉⵏ ⵜⴰⵣⵣⵓⴷ ⴰⵜⴰⵛⴷ?",
+    "que veux tu manger?": "What do you want to eat? intazzod Atachadh? ⵎⵉⵏ ⵜⴰⵣⵣⵓⴷ ⴰⵜⴰⵛⴷ?",
+    "ⵎⵉⵏ ⵜⴰⵣⵣⵓⴷ ⴰⵜⴰⵛⴷ?": "What do you want to eat? intazzod Atachadh? que veux tu manger?",
+    "I like": "Azzox je veux ⴰⵣⵓⵅ",
+    "Azzox": "I like je veux ⴰⵣⵓⵅ",
+    "je veux": "Azzox I like ⴰⵣⵓⵅ",
+    "ⴰⵣⵓⵅ": "Azzox je veux I like",
+    "Cheese": "D'han fromage ⴷⵀⴰⵏ",
+    "fromage": "D'han Cheese ⴷⵀⴰⵏ",
+    "ⴷⵀⴰⵏ": "D'han Cheese fromage",
+    "D'han": "Cheese fromage ⴷⵀⴰⵏ",
+    "Fruits": "Rxodath ⵔⵅⵓⴷⴰⵝ",
+    "Rxodath": "Fruits ⵔⵅⵓⴷⴰⵝ",
+    "ⵔⵅⵓⴷⴰⵝ": "Rxodath Fruits",
+    "Potatos": "Batata ⴱⴰⵟⴰⵟⴰ",
+    "Batata": "Potatos ⴱⴰⵟⴰⵟⴰ",
+    "ⴱⴰⵟⴰⵟⴰ": "Potatos Batata",
+    "les frites": "Frita ⴼⵔⵉⵟⴰ",
+    "Frita": "les frites ⴼⵔⵉⵟⴰ",
+    "ⴼⵔⵉⵟⴰ": "les frites Frita",
+    "Grapes": "Adhir ⴰⴹⵉⵔ",
+    "Adhir": "Grapes ⴰⴹⵉⵔ",
+    "ⴰⴹⵉⵔ": "Grapes Adhir",
+      "bedd": "stop ⴱⴰⴷⴷ",
+      "stop": "bedd ⴱⴰⴷⴷ",
+      "ⴱⴰⴷⴷ": "bedd stop",
+      "zembu": "mets à base d'orge grillé ⵣⴰⵎⴱⵓ",
+      "ⵣⴰⵎⴱⵓ": "mets à base d'orge grillé zembu",
+      "tfawf n waXam": "la lumière de la maison 'épouse' ⵜⴼⴰⵡⵜ ⵏ ⵡⴰⵅⴰⵎ 'ⵜⴰⵙⵔⵉⵜ'",
+      "ⵜⴼⴰⵡⵜ ⵏ ⵡⴰⵅⴰⵎ 'ⵜⴰⵙⵔⵉⵜ'": "la lumière de la maison 'épouse'tfawf n waXam'",
+      "la lumière de la maison 'épouse'": "ⵜⴼⴰⵡⵜ ⵏ ⵡⴰⵅⴰⵎ 'ⵜⴰⵙⵔⵉⵜ'tfawf n waXam'",
+      "tassrit n wanzar": "fiancée de la pluie 'arc-en-ciel' ⵜⴰⵙⵔⵉⵜ ⵏ ⵡⴰⵏⵣⴰⵔ",
+      "arc-en-ciel": "tassrit n wanzar ⵜⴰⵙⵔⵉⵜ ⵏ ⵡⴰⵏⵣⴰⵔ",
+      "ⵜⴰⵙⵔⵉⵜ ⵏ ⵡⴰⵏⵣⴰⵔ": "fiancée de la pluie 'arc-en-ciel 'tassrit n wanzar",
+      "What kind of music You prefere?": "Mani music idam ita3jiben?,quelle music aimes-tu?,ⵎⴰⵏⵉ ⵎⵓⵙⵉⵇⴰ ⵉⴷⴰⵎ ⵉⵜⵄⵊⴱⴰⵏ?",
+      "ⵎⴰⵏⵉ ⵎⵓⵙⵉⵇⴰ ⵉⴷⴰⵎ ⵉⵜⵄⵊⴱⴰⵏ?": "Mani music idam ita3jiben?,quelle music aimes-tu?,What kind of music You prefere?",
+      "Mani music idam ita3jiben?": "What kind of music You prefere?,quelle music aimes-tu?,ⵎⴰⵏⵉ ⵎⵓⵙⵉⵇⴰ ⵉⴷⴰⵎ ⵉⵜⵄⵊⴱⴰⵏ?",
+      "quelle music aimes-tu?": "Mani music idam ita3jiben?,What kind of music You prefere?,ⵎⴰⵏⵉ ⵎⵓⵙⵉⵇⴰ ⵉⴷⴰⵎ ⵉⵜⵄⵊⴱⴰⵏ?",
+      "I like izran & Rai music": "ita3jibayi music narif ak rai,j'aime la music rif & rai,ⵉⵜⵄⵊⴱⴰⵢⵉ ⵉⵣⵔⴰⵏ ⴰⴽ ⵔⴰⵢ ⵎⵓⵙⵉⵇⴰ",
+      "ita3jibayi music narif ak rai": "I like izran & Rai music,j'aime la music rif & rai,ⵉⵜⵄⵊⴱⴰⵢⵉ ⵉⵣⵔⴰⵏ ⴰⴽ ⵔⴰⵢ ⵎⵓⵙⵉⵇⴰ",
+      "j'aime la music rif & rai": "ita3jibayi music narif ak rai,I like izran & Rai music,ⵉⵜⵄⵊⴱⴰⵢⵉ ⵉⵣⵔⴰⵏ ⴰⴽ ⵔⴰⵢ ⵎⵓⵙⵉⵇⴰ",
+      "ⵉⵜⵄⵊⴱⴰⵢⵉ ⵉⵣⵔⴰⵏ ⴰⴽ ⵔⴰⵢ ⵎⵓⵙⵉⵇⴰ": "ita3jibayi music narif ak rai,j'aime la music rif & rai,I like izran & Rai music",
+      "bedd":"stop ⴱⴰⴷⴷ",
+"stop": "bedd ⴱⴰⴷⴷ",
+"ⴱⴰⴷⴷ": "bedd stop",
+"zembu":"mets à base d'orge grillé ⵣⴰⵎⴱⵓ",
+"ⵣⴰⵎⴱⵓ":"mets à base d'orge grillé zembu",
+"tassrit n wanzar": "fiancée de la pluie 'arc-en-ciel' ⵜⴰⵙⵔⵉⵜ ⵏ ⵡⴰⵏⵣⴰⵔ",
+"fiancée de la pluie 'arc-en-ciel'": "tassrit n wanzar ⵜⴰⵙⵔⵉⵜ ⵏ ⵡⴰⵏⵣⴰⵔ",
+"ⵜⴰⵙⵔⵉⵜ ⵏ ⵡⴰⵏⵣⴰⵔ": "fiancée de la pluie 'arc-en-ciel 'tassrit n wanzar",
+"Ralla yemma":"ma chére maman ⵔⴰⵍⵍⴰ ⵢⴰⵎⵎⴰ",
+"ⵔⴰⵍⵍⴰ ⵢⴰⵎⵎⴰ":"ma chérre aman Ralla yemma",
+"ma chére maman":"Ralla yemma ⵔⴰⵍⵍⴰ ⵢⴰⵎⵎⴰ",
+  "qqim": "Assieds-toi ! Sit down! ⵇⵉⵎ",
+  "Assieds-toi !": "qqim ! Sit down! ⵇⵉⵎ",
+  "ⵇⵉⵎ": "Assieds-toi ! Sit down! qqim",
+  "timura": "pays country ⵜⵉⵎⵓⵔⴰ",
+  "pays": "timura country ⵜⵉⵎⵓⵔⴰ",
+  "ⵜⵉⵎⵓⵔⴰ": "pays country timura",
+  "tammurt": "terre land ⵜⴰⵎⵓⵔⵜ",
+  "terre": "tammurt land ⵜⴰⵎⵓⵔⵜ",
+  "ⵜⴰⵎⵓⵔⵜ": "terre land tammurt",
+  "timira": "barbes beards ⵜⵉⵎⵉⵔⴰ",
+  "barbes": "ⵜⵉⵎⵉⵔⴰ timira beards",
+  "ⵜⵉⵎⵉⵔⴰ": "barbes beards timira",
+  "yabyutat": "mouettes seagulls ⵢⴰⴱⵢⵓⵜⴰⵜ",
+  "mouettes": "yabyutat seagulls ⵢⴰⴱⵢⵓⵜⴰⵜ",
+  "ⵢⴰⴱⵢⵓⵜⴰⵜ": "mouettes seagulls yabyutat",
+  "mmi": "mon fils my son ⵎⵎⵉ",
+  "mon fils": "mmi my son ⵎⵎⵉ",
+  "ⵎⵎⵉ": "mon fils my son mmi",
+  "utchma-s n Fatima": "sa sœur à Fatima his sister Fatima's ⵓⵞⵎⴰⵙ ⵏ ⴼⴰⵟⵉⵎⴰ",
+  "ⵓⵞⵎⴰⵙ ⵏ ⴼⴰⵟⵉⵎⴰ": "sa sœur à Fatima his sister Fatima's utchma-s n Fatima",
+  "sa sœur à Fatima": "utchma-s n Fatima his sister Fatima's ⵓⵞⵎⴰⵙ ⵏ ⴼⴰⵟⵉⵎⴰ",
+  "djeddi-s n Mohamed": "son grand-père à Mohamed his grandfather Mohamed's ⴶⴰⴷⵉⵙ ⵏ ⵎⵓⵃⴰⵎⴰⴷ",
+  "son grand-père à Mohamed": "djeddi-s n Mohamed his grandfather Mohamed's ⴶⴰⴷⵉⵙ ⵏ ⵎⵓⵃⴰⵎⴰⴷ",
+  "ⴶⴰⴷⵉⵙ ⵏ ⵎⵓⵃⴰⵎⴰⴷ": "son grand-père à Mohamed his grandfather Mohamed's djeddi-s n Mohamed",
+  "fad": "soif thirst ⴼⴰⴷ",
+  "soif": "fad thirst ⴼⴰⴷ",
+  "ⴼⴰⴷ": "soif thirst fad",
+  "temzi": "jeunesse youth ⵜⵎⵣⵉ",
+  "jeunesse": "temzi youth ⵜⵎⵣⵉ",
+  "ⵜⵎⵣⵉ": "jeunesse youth temzi",
+  "macha": "nourriture food ⵎⴰⵛⵛⴰ",
+  "nourriture": "macha food ⵎⴰⵛⵛⴰ",
+  "ⵎⴰⵛⵛⴰ": "nourriture food macha",
+  "ameqqran": "grand big/large ⴰⵎⵇⵔⴰⵏ",
+  "grand": "ameqqran big/large ⴰⵎⵇⵔⴰⵏ",
+  "ⴰⵎⵇⵔⴰⵏ": "grand big/large ameqqran",
+  "azru": "les cailloux stones ⴰⵥⵔⵓ",
+  "ⴰⵥⵔⵓ": "les cailloux stones azru",
+  "les cailloux": "azru stones ⴰⵥⵔⵓ",
+  "tazrut": "la roche the rock ⵜⴰⵥⵔⵓⵜ",
+  "ⵜⴰⵥⵔⵓⵜ": "tazrut the rock ⵜⴰⵥⵔⵓⵜ",
+  "la roche": "tazrut the rock ⵜⴰⵥⵔⵓⵜ",
+  "pabu": "dinde turkey ⵒabu",
+  "ⵒabu": "dinde turkey pabu",
+  "dinde": "pabu turkey ⵒabu",
+  "t7anet": "boutique shop ⵝⵃⴰⵏⵓⵜ",
+  "ⵝⵃⴰⵏⵓⵜ": "boutique shop t7anet",
+  "boutique": "t7anet shop ⵝⵃⴰⵏⵓⵜ",
+  "ṭamza": "ogresse ogress ⵝⴰⵎⵥⴰ",
+  "adĭid": "oiseau bird ⴰⴶⵉⴹ",
+  "oiseau": "adĭid bird ⴰⴶⵉⴹ",
+  "ⴰⴶⵉⴹ": "oiseau bird adĭid",
+  "vache": "tafunast cow ⵜⴰⴼⵓⵏⴰⵙⵜ",
+  "homme": "aryaz man ⴰⵔⵢⴰⵣ",
+  "aryaz": "aryaz man ⴰⵔⵢⴰⵣ",
+  "ⴰⵔⵢⴰⵣ": "aryaz man ⴰⵔⵢⴰⵣ",
+  "femme": "tamghart woman ⵝⴰⵎⵖⴰⵔⵝ",
+  "tamghart": "femme woman ⵝⴰⵎⵖⴰⵔⵝ",
+  "ⵝⴰⵎⵖⴰⵔⵝ": "tamghart woman femme",
+  "bouc": "amyan billy goat ⴰⵎⵢⴰⵏ",
+  "amyan": "bouc billy goat ⴰⵎⵢⴰⵏ",
+  "ⴰⵎⵢⴰⵏ": "amyan billy goat bouc",
+  "isari": "bélier ram ⵉⵙⴰⵔⵉ",
+  "bélier": "isari ram ⵉⵙⴰⵔⵉ",
+  "ⵉⵙⴰⵔⵉ": "bélier ram isari",
+  "tikhsi": "brebis ewe ⵜⵉⵅⵙⵉ",
+  "brebis": "tikhsi ewe ⵜⵉⵅⵙⵉ",
+  "ⵜⵉⵅⵙⵉ": "brebis ewe tikhsi",
+  "yis": "cheval horse ⵢⵉⵙ",
+  "cheval": "yis horse ⵢⵉⵙ",
+  "ⵢⵉⵙ": "cheval horse yis",
+  "titt": "œil eye ⵜⵉⵟ",
+  "ⵜⵉⵟ": "œil eye titt",
+  "œil": "titt eye ⵜⵉⵟ",
+  "attaw": "grand œil big eye ⴰⵟⴰⵡ",
+  "grand œil": "attaw big eye ⴰⵟⴰⵡ",
+  "ⴰⵟⴰⵡ": "grand œil big eye attaw",
+  "Fus": "main hand ⴼⵓⵙ",
+  "main": "Fus hand ⴼⵓⵙ",
+  "ⴼⵓⵙ": "main hand Fus",
+  "taghenadjachth": "cuillère spoon ⵜⴰⵖⵏⴶⴰⵛⵝ",
+  "ⵜⴰⵖⵏⴶⴰⵛⵝ": "cuillère spoon taghenadjachth",
+  "cuillère": "taghenadjachth spoon ⵜⴰⵖⵏⴶⴰⵛⵝ",
+  "taqbucht": "jarre à eau water jar ⵝⴰⵇⴱⵓⵛⵜ",
+  "jarre à eau": "taqbucht water jar ⵝⴰⵇⴱⵓⵛⵜ",
+  "ⵝⴰⵇⴱⵓⵛⵜ": "jarre à eau water jar taqbucht",
+  "yechur-it s waman": "il’a rempli avec de l’eau he filled it with water ⵢⵓⵛⵛⵓⵔ ⵉⵜ ⵙⵡⴰⵎⴰⵏ",
+  "ⵢⵓⵛⵛⵓⵔ ⵉⵜ ⵙⵡⴰⵎⴰⵏ": "il’a rempli avec de l’eau he filled it with water yechur-it s waman",
+  "il’a rempli avec de l’eau": "ⵢⵓⵛⵛⵓⵔ ⵉⵜ ⵙⵡⴰⵎⴰⵏ he filled it with water ⵢⴻⵛⵛⵓⵔ ⵉⵜ ⵙⵡⴰⵎⴰⵏ",
+  "bonjour,salut": "mere7ba, chokran u chek ? hello, hi ⵎⴰⵔⵃⴱⴰ ⵛⵓⴽⵔⴰⵏ ⵓ ⵛⴻⴽ",
+  "merci beaucoup": "ssa7it thank you very much ⵚⴰⵃⵉⵝ",
+  "merci infiniment": "Achye7fed rebi thank you infinitely ⴰⵛⵢⵃⴼⴰⴹ ⵔⴰⴱⵉ",
+  "ⴰⵛⵢⵃⴼⴰⴹ ⵔⴰⴱⵉ": "Achye7fed rebi thank you infinitely merci infiniment",
+  "Achye7fed rebi": "ⴰⵛⵢⵃⴼⴰⴹ ⵔⴰⴱⵉ thank you infinitely merci infiniment",
+  "au revoir adieu": "besselama goodbye ⴱⵉⵙⵍⴰⵎⴰ",
+  "le numéro téléphone": "numru tilifone phone number ⵏⵓⵎⵔⵓ ⵜⵉⵍⵉⴼⵓⵏ",
+  "un sachet de plastique": "Mika plastik plastic bag ⵎⵉⴽⴰ ⴷ ⵒⵍⴰⵙⵜⵉⴽ",
+  "les saucisse grillées": "susiit mechwi grilled sausages ⵚⵓⵚⵉⵟ ⵎⵛⵓⵉ",
+  "le lavabo de cuisine": "llababu d anwal kitchen sink ⵍⴰⴱⴰⴱⵓ ⴷⴰⵏⵓⴰⵍ",
+  "l'adresse de la maison": "landris d tadart, home address ⵍⴰⵏⴷⵔⵉⵙ ⴷ ⵜⴰⴷⴰⵔⵝ",
+  "la famille très importantes": "familya dyis lfayda, very important family ⴼⴰⵎⵉⵍⵢⴰ ⴷⴰⵢⵉⵙ ⴼⴰⵢⴷⴰ",
+  "pourquoi tu manges du poissons": "purki atchet iserman, why are you eating fish? ⵒⵓⵔⴽⵉ ⴰⵜⵛⵝ ⵉⵙⵔⵎⴰⵏ",
+  "le coco est tres bon": "kuku dasb7an, the coconut is very good ⴽⵓⴽⵓ ⴷⴰⵙⴱⵃⴰⵏ !",
+  "zéro est un nombre": "ziru Raqem, zero is a number ⵣⵉⵔⵓ ⵔⴰⵇⴰⵎ",
+  "le monde est grand": "ddənya tamqrante, the world is big ⴷⴻⵏⵢⴰ ⵝⴰⵎⵇⵔⴰⵏⵝ",
+  "le combat est féroce": "ta3əjjacht tamjhedth, the fight is fierce ⵟⴰⵄⵊⵊⴰⵛⵟ ⵜⴰⵎⵊⴻⵀⴷⵝ",
+  "la mer rouge": "reb7ar azogagh, the red sea ⵔⴰⴱⵃⴰ ⴰⵣⵓⴳⴰⵖ",
+  "les vagues de la mer": "rmujjet d reb7ar, the waves of the sea ⵔⵎⵓⵊⵊⴻⵝ ⴷ ⵔⴰⴱⵃⴰⵔ",
+  "ⵜⵓⵄⴰⵔ ⵢⴻⵎⴰⵛ ⵎⵛⵃⴰⵔ ⵜⵓⵄⴰⵔ": "tu3ar yemach mche7ar tu3ar, your mother is very strict",
+  "ta mère est très sévère": "tu3ar yemach mche7ar tu3ar, your mother is very strict ⵜⵓⵄⴰⵔ ⵢⴻⵎⴰⵛ ⵎⵛⵃⴰⵔ ⵜⵓⵄⴰⵔ",
+  "tu3ar yemach mche7ar tu3ar": "ⵜⵓⵄⴰⵔ ⵢⴻⵎⴰⵛ ⵎⵛⵃⴰⵔ ⵜⵓⵄⴰⵔ, your mother is very strict",
+  "ⵜⴰⵔⵉⴼⵛⵜ ⵜⴰⵜⵖⵏⴻⵊ ⵉⵣⵔⴰⵏ": "Riffian women sing beautiful poems, tarifacht teghnajth izran",
+  "tarifacht teghnajth izran": "Riffian women sing beautiful poems, ⵜⴰⵔⵉⴼⵛⵜ ⵜⴰⵜⵖⵏⴻⵊ ⵉⵣⵔⴰⵏ",
+  "les femmes riffaines chantent de beaux poèmes": "tarifacht teghnajth izran, Riffian women sing beautiful poems ⵜⴰⵔⵉⴼⵛⵜ ⵜⴰⵜⵖⵏⴻⵊ ⵉⵣⵔⴰⵏ",
+  "lmoustaqbal negh": "pour notre avenir for our future ⵅ ⵍⵎⵓⵙⵜⵇⴱⴰⵍ ⵏⴰⵖ",
+  "pour notre avenir": "lmoustaqbal negh for our future ⵅ ⵍⵎⵓⵙⵜⵇⴱⴰⵍ ⵏⴰⵖ",
+  "ⵍⵎⵓⵙⵜⵇⴱⴰⵍ ⵏⴰⵖ": "pour notre avenir for our future lmoustaqbal negh",
+  "ithran dg ujenna": "les étoiles du ciel the stars in the sky ⵉⵝⵔⴰⵏ ⴷⴳ ⵓⵊⵏⵏⴰ",
+  "les étoiles du ciel": "ithran dg ujenna the stars in the sky ⵉⵝⵔⴰⵏ ⴷⴳ ⵓⵊⵏⵏⴰ",
+  "ⵉⵝⵔⴰⵏ ⴷⴳ ⵓⵊⵏⵏⴰ": "les étoiles du ciel the stars in the sky, ithran dg ujenna",
+  "boire du thé": "swighe atay drink tea ⵙⵓⵉⵖ ⴰⵜⴰⵢ",
+  "ⵙⵓⵉⵖ ⴰⵜⴰⵢ": "swighe atay drink tea",
+  "swighe atay": "boire du thé drink tea ⵙⵓⵉⵖ ⴰⵜⴰⵢ",
+  "rien du tout": "walou walou nothing at all ⵡⴰⵍⵓ ⵡⴰⵍⵓ",
+  "walou walou": "rien du tout nothing at all ⵡⴰⵍⵓ ⵡⴰⵍⵓ",
+  "ⵡⴰⵍⵓ ⵡⴰⵍⵓ": "walou walou nothing at all",
+  "ⴽⴰⵙⵙ ⵏ ⵡⴰⵜⴰⵢ": "un verre de thé a glass of tea, kasse nwatay",
+  "kasse nwatay": "un verre de thé a glass of tea ⴽⴰⵙⵙ ⵏ ⵡⴰⵜⴰⵢ",
+  "un verre de thé": "kasse nwatay a glass of tea ⴽⴰⵙⵙ ⵏ ⵡⴰⵜⴰⵢ",
+  "Khessegh titawin nem": "j'aime tes yeux de biche I love your doe eyes ⵅⵙⵖ ⵜⵉⵟⴰⵡⵉⵏ ⵏⴻⵎ",
+  "j'aime tes yeux de biche": "Khessegh titawin nem I love your doe eyes ⵅⵙⵖ ⵜⵉⵟⴰⵡⵉⵏ ⵏⴻⵎ",
+  "ⵅⵙⵖ ⵜⵉⵟⴰⵡⵉⵏ ⵏⴻⵎ": "j'aime tes yeux de biche I love your doe eyes, Khessegh titawin nem",
+  "Dchar ino": "mon village my village ⴷⵛⴰⵔ ⵉⵏⵓ",
+  "mon village": "Dchar ino my village ⴷⵛⴰⵔ ⵉⵏⵓ",
+  "ⴷⵛⴰⵔ ⵉⵏⵓ": "mon village my village Dchar ino",
+  "se mettre en colère": "ch3ch3 get angry ⵛⴰⵄⵛⵄ",
+  "le forêt de chaîne": "rghabət rbeloth, the chain forest ⵕⵖⴰⴱⴰⵝ ⵔⴱⴻⵍⵓⵝ",
+  "l'arbre de la forêt": "chəjjart d rghaba, the forest tree ⵛⴰⵊⵊⴰⵔⵜ ⴷ ⵔⵖⴰⴱⴰ",
+  "le séisme de nador": "zzinzal d'anadur, the Nador earthquake ⵥⵉⵏⵣⴰⵍ ⴷ'ⴰⵏⴰⴷⵓⵔ",
+  "ⵛⴻⵎ ⴷ ⵍⵃⵓⴱ ⴰⵎⵣⵡⴰⵔ": "you are my first love, chem d l7oub amzewar",
+  "tu es mon premier amour": "chem d l7oub amzewar, you are my first love ⵛⴻⵎ ⴷ ⵍⵃⵓⴱ ⴰⵎⵣⵡⴰⵔ",
+  "chem d l7oub amzewar": "tu es mon premier amour, you are my first love ⵛⴻⵎ ⴷ ⵍⵃⵓⴱ ⴰⵎⵣⵡⴰⵔ",
+  "ⴰⵥⵔ": "Deghya, Act quickly, respond quickly",
+  "Azer": "Deghya, Act quickly, respond quickly ⴰⵥⵔ",
+  "Deghya": "Deghya, Act quickly, respond quickly ⴷⵖⵢⴰ",
+  "tfucht wakham": "3emarte dare, moon of my life ⵜⴼⵓⵛⵜ ⵡⴰⵅⴰⵎ",
+  "ⵜⴼⵓⵛⵜ ⵡⴰⵅⴰⵎ": "3emarte dare, moon of my life, tfucht wakham",
+  "3emarte dare": "tfucht wakham, moon of my life ⵜⴼⵓⵛⵜ ⵡⴰⵅⴰⵎ",
+  "tifayur": "plus belle que la lune more beautiful than the moon ⵜⵉⴼ ⴰⵢⵓⵔ",
+  "ogresse": "ṭamza ogress ⵝⴰⵎⵥⴰ",
+  "ⵝⴰⵎⵥⴰ": "ogresse ogress ṭamza",
+  "tizi": "vallée valley ⵜⵉⵣⵉ",
+  "vallée": "tizi valley ⵜⵉⵣⵉ",
+  "ⵜⵉⵣⵉ": "vallée valley tizi",
+  "karnu": "charrette cart ⴽⴰⵔⵏⵓ",
+  "charrette": "karnu cart ⴽⴰⵔⵏⵓ",
+  "ⴽⴰⵔⵏⵓ": "charrette cart karnu",
+  "anu": "puits well ⴰⵏⵓ",
+  "puits": "anu well ⴰⵏⵓ",
+  "ⴰⵏⵓ": "puits well anu",
+  "uchen": "chacal jackal ⵓⵛⴻⵏ",
+  "chacal": "uchen jackal ⵓⵛⴻⵏ",
+  "ⵓⵛⴻⵏ": "chacal jackal uchen",
+  "afedja7": "agriculteur farmer ⴰⴼⴶⴰⵃ",
+  "agriculteur": "afedja7 farmer ⴰⴼⴶⴰⵃ",
+  "ⴰⴼⴶⴰⵃ": "agriculteur farmer afedja7",
+  "poissons": "isserman fish ⵉⵙⵔⵎⴰⵏ",
+  "isserman": "poissons fish ⵉⵙⵔⵎⴰⵏ",
+  "ⵉⵙⵔⵎⴰⵏ": "poissons fish isserman",
+  "udem": "visage face ⵓⴷⵎ",
+  "visage": "udem face ⵓⴷⵎ",
+  "ⵓⴷⵎ": "visage face udem",
+  "ifis": "hyène hyena ⵉⴼⵉⵙ",
+  "hyène": "ifis hyena ⵉⴼⵉⵙ",
+  "ⵉⴼⵉⵙ": "hyène hyena ifis",
+  "awar": "mot word ⴰⵡⴰⵔ",
+  "mot": "awar word ⴰⵡⴰⵔ",
+  "ⴰⵡⴰⵔ": "mot word awar",
+  "azwagh": "racine root ⴰⵣⵡⴰⵖ",
+  "racine": "azwagh root ⴰⵣⵡⴰⵖ",
+  "ⴰⵣⵡⴰⵖ": "racine root azwagh",
+  "imslemen": "musulmans muslims ⵉⵎⵙⵍⵎⴰⵏ",
+  "musulmans": "imslemen muslims ⵉⵎⵙⵍⵎⴰⵏ",
+  "ⵉⵎⵙⵍⵎⴰⵏ": "musulmans muslims imslemen",
+  "itri": "étoile star ⵉⵝⵔⵉ",
+  "étoile": "itri star ⵉⵝⵔⵉ",
+  "ⵉⵝⵔⵉ": "étoile star itri",
+  "izi": "mouche fly ⵉⵣⵉ",
+  "mouche": "izi fly ⵉⵣⵉ",
+  "ⵉⵣⵉ": "mouche fly izi",
+  "djidj": "cheville ankle ⴶⵉⴶ",
+  "ⴶⵉⴶ": "djidj ankle cheville",
+  "cheville": "djidj ankle ⴶⵉⴶ",
+  "dad": "doigt finger ⴹⴰⴹ",
+  "ⴹⴰⴹ": "doigt finger dad",
+  "doigt": "dad finger ⴹⴰⴹ",
+  "tghaṭṛt": "chèvre goat ⵜⵖⴰⵝⵔⵝ",
+  "chèvre": "tghaṭṛt goat ⵜⵖⴰⵝⵔⵝ",
+  "ⵜⵖⴰⵝⵔⵝ": "chèvre goat tghaṭṛt",
+  "ⵜⵉⴼ ⴰⵢⵓⵔ": "plus belle que la lune more beautiful than the moon,tifayur",
+  "plus belle que la lune": "tifayur more beautiful than the moon,ⵜⵉⴼ ⴰⵢⵓⵔ",
+  "ⵜⴰⵣⵉⵔⵉ ⵜⴰⵎⵉⵔⵉ": "au clair de la lune by the light of the moon,taziri tamiri",
+  "taziri tamiri": "au clair de la lune by the light of the moon,ⵜⴰⵣⵉⵔⵉ ⵜⴰⵎⵉⵔⵉ",
+  "au clair de la lune": "ⵜⴰⵣⵉⵔⵉ ⵜⴰⵎⵉⵔⵉ by the light of the moon,taziri tamiri",
+  "vendre": "watzenouzegh sell, ⵡⴰⵜⵣⵏⵏⵓⵣⵖ",
+  "ⵡⴰⵜⵣⵏⵏⵓⵣⵖ": "watzenouzegh sell, vendre",
+  "watzenouzegh": "ⵡⴰⵜⵣⵏⵏⵓⵣⵖ sell, vendre",
+  "ayourinou": "ma chérie my darling, ⴰⵢⵓⵔⵉⵏⵓ",
+  "ma chérie": "ayourinou my darling, ⴰⵢⵓⵔⵉⵏⵓ",
+  "ⴰⵢⵓⵔⵉⵏⵓ": "ayourinou my darling, ma chérie",
+  "la rose du matin": "nnda morning rose, ⵏⵏⴷⴰ",
+  "le vent glacial": "Assemid icy wind, ⴰⵚⵎⵉⴹ",
+  "l'état semble mieux": "r7ar mzian the condition seems better, ⵕⵃⴰⵕ ⵎⴻⵣⵉⴰⵏ",
+  "la fumée s'évapore": "dekhan tittl3 the smoke evaporates, ⵕⵃⴰⵕ ⵜⵉⵟⵍⵄ",
+  "brûler le pain": "aghrum i7ār burn the bread, ⴰⵖⵔⵓⵎ ⵉⵃⴰⵔ",
+  "allumer la bougie": "ch3er tacheme3 light the candle, ⵛⵄⵔ ⵝⴰⵛⵎⴰⵄⵝ",
+  "compréhension de langue": "refħemgh n tutalayt language understanding, ⵕⴼⵃⵎⵖ ⵏ ⵝⵓⵜⴰⵍⴰⵢⵜ",
+  "mariage et 7énnée": "mrach u r7enna wedding and honeymoon, ⵎⵕⴰⵛ ⵓ ⵔⵃⵏⵏⴰ",
+  "papa et maman": "baba d yemma dad and mom, ⴱⴰⴱⴰ ⴷ ⵢⴻⵎⵎⴰ",
+  "oncle maternel et oncle": "khari d 3zizi maternal uncle and uncle, ⵅⴰⵕⵉ ⴷ ⵄⵣⵉⵣⵉ",
+  "tante maternelle et tante": "khatchi d 3enti maternal aunt and aunt, ⵅⴰⵞⵉ ⴷ ⵄⴰⵏⵜⵉ",
+  "madame et monsieur": "Ralla d sidi madam and sir, ⵔⴰⵍⵍⴰ ⴷ ⵙⵉⴷⵉ",
+  "beau fils et belle fille": "ārbib u tārbibt handsome son and beautiful daughter, ⵔⴱⵉⴱ ⵓ ⵝⴰⵔⴱⵉⵝ",
+  "billets d'argent": "rmar wela temenyat money bills, ⵕⵎⴰⵕ ⵓⵍⴰ ⵝⵎⴰⵏⵢⴰⵝ",
+  "comment ça va": "hmdlah, chokran u chek ! how are you?",
+  "aide": "Je peux vous aider avec les questions générales. I can help you with general questions.",
+  "au revoir": "besselama goodbye, ⴱⵉⵙⵍⴰⵎⴰ",
+  "numéro": "numru number, ⵏⵉⵎⵔⵓ",
+  "biens": "mziane goods/property, ⵎⵣⵉⴰⵏⴻ",
+  "plastique": "plastik plastic, ⵒⵍⴰⵙⵜⵉⴽ",
+  "saucisse": "susiit sausage, ⵚⵓⵚⵉⵟ",
+  "carte postale": "kartpustal postcard, ⴽⴰⵔⵜⵒⵓⵙⵜⴰⵍ",
+  "lavabo": "llababu sink, ⵍⴰⴱⴰⴱⵓ",
+  "adresse": "landris address, ⵍⴰⵏⴷⵔⵉⵙ",
+  "famille": "familya family, ⴼⴰⵎⵉⵍⵢⴰ",
+  "pintar": "pintā paint, ⵒⵉⵏⵜⴰ",
+  "lápiz": "lappis pencil, ⵍⴰⵒⵉⵙ",
+  "irar ⵉⵔⴰⵔ": "jeux games",
+  "ⵔⴰⵍⴰ ⴱⵓⵢⴰ": "ralla buya traditional Riffian song",
+  "ralla buya": "ⵔⴰⵍⴰ ⴱⵓⵢⴰ traditional Riffian song",
+  "pourquoi": "purki why, ⵒⵓⵔⴽⵉ",
+  "je cherche du travail": "seqsigh kh takhdemith I'm looking for work, ⵙⵇⵙⵉⵖ ⵅ ⵜⴰⵅⴷⵎⵉⵝ",
+  "seqsigh kh takhdemith": "I'm looking for work je cherche du travail, ⵙⵇⵙⵉⵖ ⵅ ⵜⴰⵅⴷⵎⵉⵝ",
+  "ⵙⵇⵙⵉⵖ ⵅ ⵜⴰⵅⴷⵎⵉⵝ": "seqsigh kh takhdemith I'm looking for work",
+  "coco": "kuku coconut, ⴽⵓⴽⵓ",
+  "zéro": "ziru zero, ⵣⵉⵔⵓ",
+  "canguro": "kangaru kangaroo, ⴽⴰⵏⴳⴰⵔⵓ",
+  "monde": "ddənya world, ⴷⴻⵏⵢⴰ",
+  "combat": "ta3əjjacht fight, ⵟⴰⵄⵊⵊⴰⵛⵟ",
+  "la mer": "rəbħā sea ⵔⴰⴱⵃⴰ",
+  "hwər": "hul water ⵀⵓⵍ",
+  "les vagues": "rmujjət waves ⵔⵎⵓⵊⵊⴻⵝ",
+  "chāchā": "chər7chər7 gossip ⵛⵔⵃⵛⵔⵃ",
+  "la forêt": "rghabət forest ⵕⵖⴰⴱⴰⵟ",
+  "arbre": "ssəjjāt tree ⵙⴰⵊⵊⴰⵟ",
+  "seisme": "zzinzal earthquake ⵥⵉⵏⵣⴰⵍ",
+  "t7t7ram": "d7ləm darkness ⴷⵃⵍⴻⵎ",
+  "la rose": "nnda rose ⵏⵏⴸⴰ",
+  "le vent": "lhawa wind ⵍⵃⴰⵡⴰ",
+  "l'etat physique": "rħar physical state ⵕⵀⴰⵕ",
+  "la fumée": "ddəkhkhan smoke ⴷⴻⵅⴰⵏ",
+  "brûler": "7ārq burn ⵃⴰⵔⵇ",
+  "allumer": "chch3ər light up ⵛⴻⵛⵄⵔ",
+  "la comprehension": "rəfħəm understanding ⵕⴻⴼⵃⵎ",
+  "être humain": "bnadəm human being ⴱⵏⴰⴸⵎ",
+  "mariage": "mrəch marriage ⵎⵕⴰⵛ",
+  "papa": "baba dad ⴱⴰⴱⴰ",
+  "maman": "yəmma mom ⵢⴻⵎⵎⴰ",
+  "les parents": "lwalidin parents ⵍⵓⴰⵍⵉⴷⵉⵏ",
+  "grand père": "jəddi grandfather ⵊⴰⴷⴷⵉ",
+  "grand mère": "ħənna grandmother ⵃⴰⵏⵏⴰ",
+  "oncle maternel": "khari maternal uncle ⵅⴰⵕⵉ",
+  "oncle": "3zizi uncle ⵄⵣⵉⵣⵉ",
+  "tante maternelle": "khači maternal aunt ⵅⴰⵞⵉ",
+  "tante": "3ənti aunt ⵄⴰⵏⵜⵉ",
+  "madame": "Ralla madam ⵔⴰⵍⵍⴰ",
+  "beau fils": "ābib handsome son ⵔⴱⵉⴱ",
+  "belle fille": "tābift beautiful daughter ⵟⴰⵔⴱⵉⵟ",
+  "predixe": "tajjach prefix ⵜⴰⵊⵊⴰⵛ",
+  "predix": "ajjar prefix ⴰⵊⵊⴰⵕ",
+  "les billets d'argent": "rmar money bills ⵕⵎⴰⵕ",
+  "écurie": "rkuri stable ⵕⴽⵓⵔⵉ",
+  "le veau": "a3əjmi calf ⴰⵄⴻⵊⵎⵉ",
+  "le mouton": "aħuri sheep ⴰⵃⵓⵔⵉ",
+  "akidā": "kid7ar green ⴽⵉⴷⵃⴰⵔ",
+  "les fêtards": "afā7an partygoers ⴰⴼⴰⵃⴰⵏ",
+  "les biens": "abākiw goods ⴰⴱⴰⴽⵉⵡ",
+  "faucon": "rbaz falcon ⵕⴱⴰⵣ",
+  "rwəd7wad7": "wət7wat7 butterfly ⵡⴻⵜⵃⵡⴰⵜⵃ",
+  "perroquet": "babaghayyu parrot ⴱⴰⴱⴰⵖⴰⵢⵓ",
+  "hibou": "muka owl ⵎⵓⴽⴰ",
+  "requin": "rqirch shark ⵔⵇⵉⵔⵛ",
+  "le foulard": "akhmār scarf ⴰⵅⵎⴰⵔ",
+  "Moustiques": "nnamus mosquitoes ⵏⵏⴰⵎⵓⵙ",
+  "escargots": "buchchər snails ⴱⵓⵛⴻⵛⴰⵔ",
+  "le son de la grenouille": "tqāqra frog sound ⵟⵇⴰⵇⵔⴰ",
+  "chch3ā": "ch3ər7 shine ⵛⵄⴻⵔⵃ",
+  "éplucher les fèves": "aqchua peel beans ⴰⵇⵛⵓⴰ",
+  "rayonnantes": "tanəwwāt radiant ⵝⴰⵏⵓⵡⴰⵝ",
+    "griffer,scratch": "akhbuch ⴰⵅⴱⵓⵛ",
+    "travailleur,worker": "akhəddam ⴰⵅⴷⴰⵎ",
+    "plisser les yeux d'un mauvais regard,squint with a bad look": "akhənza ⴰⵅⴻⵏⵣⴰ",
+    "tailleur,tailor": "akhəyyad ⴰⵅⴻⵢⴰⴹ",
+    "bon prix,good price": "ārkhu ⵔⴰⵅⵓ",
+    "une tente,a tent": "akham ⴰⵅⵅⴰⵎ",
+    "voisin,neighbor": "ajjār ⴰⵊⵊⴰⵔ",
+    "militaire,military": "a3əskari ⴰⵄⴰⵙⴽⴰⵔⵉ",
+    "gardien de nuit,night guard": "a3əssas ⴰⵄⴻⵙⵙⴰⵙ",
+    "le bouc,the billy goat": "a3ətrus ⴰⵄⴻⵜⵔⵓⵙ",
+    "bicyclette,bicycle": "bachklit ⴱⴰⵛⴽⵍⵉⵜ",
+    "les toilettes,the toilet": "bitəlma ⴱⵉⵜⴻⵍⵎⴰ",
+    "Dehors,outside": "barra ⴱⴰⵕⵕⴰ",
+    "hier,yesterday": "barrə7 ⴱⴰⵔⵔⴻⵃ",
+    "parler à haute voix,speak loudly": "barra7 ⴱⴰⵔⵔⴰⵃ",
+    "commencer à,start to": "bda ⴱⴷⴰ",
+    "changer de,change": "bəddər ⴱⴻⴷⴻⵔ",
+    "délicieux plat,delicious dish": "bna ⴱⵏⴰ",
+    "bullôt,balloon": "bulun ⴱⵓⵍⵓⵏ",
+    "serpent,snake": "busəkka ⴱⵓⵙⴻⴽⴰ",
+    "babouche,slipper": "buchər ⴱⵓⵛⵛⴻⵔ",
+    "la sandale,the sandal": "janklat ⵊⴰⵏⴽⵍⴰⵟ",
+    "gratiner avec de l'huile,grease with oil": "ddhən ⴷⵀⴰⵏ",
+    "le maïs,the corn": "ddra ⴷⴻⴷⵔⴰ",
+    "chercher des solutions,look for solutions": "dəbbār ⴷⴻⴱⴰⵔ",
+    "faire vite,do quickly": "dəɣya ⴷⴻⵖⵢⴰ",
+    "erreur,error": "falta ⴼⴰⵍⵟⴰ",
+    "parler lentement pour une meilleure compréhension,speak slowly for better understanding": "fāz ⴼⴰⵔⵣ",
+    "rechercher,search": "fəttəch ⴼⴰⵜⴻⵛ",
+    "comprends,understand": "fhəm ⴼⵀⴻⵎ",
+    "faire,do": "f7ər ⴼⵃⴻⵔ",
+    "petit bateau,small boat": "fluka ⴼⵍⵓⴽⴰ",
+    "frein,brake": "frina ⴼⵔⵉⵏⴰ",
+    "couper la viande en morceaux,cut meat into pieces": "fsər ⴼⵙⴻⵔ",
+    "pommade,ointment": "fumada ⴼⵓⵎⴰⴷⴰ",
+    "guerre,war": "garra ⴳⴰⵔⵔⴰ",
+    "cigarette,cigarette": "garru ⴳⴰⵔⵔⵓ",
+    "le pince,the pliers": "jjəqqad ⵊⴰⵇⴰⴹ",
+    "le tamis,the sieve": "ɣārbər ⵖⴰⵔⴱⴰⵔ",
+    "traitre,traitor": "ɣdār ⵖⴷⴰⵔ",
+    "plonger,dive": "ɣdəs ⵖⴹⴰⵙ",
+    "interdire,forbid": "7arrəm ⵃⵔⴻⵎ",
+    "par méprise, mes excuses,by mistake, my apologies": "7acha ⵃⴰⵛⴰ",
+    "mr pèlerin,Mr. Pilgrim": "7aj ⵃⴰⵊ",
+    "se faire coiffer les cheveux avec un ciseaux,get a haircut with scissors": "7dəq ⵃⴷⴻⵇ",
+    "modernisation,modernization": "7əddət ⵃⴰⴷⴻⵜ",
+    "pied nu,barefoot": "7fa ⵃⴼⴰ",
+    "prénom,first name": "isəm ⵉⵙⵎ",
+    "perdre sa couleur d'origine peau,lose original skin color": "kachəf ⴽⵛⴼ",
+    "remplir le verre de thé,fill the tea glass": "kəbb ⴽⴻⴱ",
+    "fumer le kif,smoke kif": "kəyyəf ⴽⵉⵢⴻⴼ",
+    "plus,more": "ktār ⴽⵜⴰⵔ",
+    "couleur,color": "kulur ⴽⵓⵍⵓⵔ",
+    "commencer,start": "kumasa ⴽⵓⵎⴰⵙⴰ",
+    "lampe,lamp": "lamba ⵍⴰⵎⴱⴰ",
+    "la pelle,the shovel": "lbala ⵍⴱⴰⵍⴰ",
+    "éducateur en msid,Quranic school teacher": "lfaqi ⵍⴼⴰⵇⵉ",
+    "le bus,the bus": "lkar ⵍⴽⴰⵕ",
+    "la Destinée,fate": "lkitabn ⵍⴽⵉⵜⴰⴱ",
+    "l'orange,the orange": "llətchin ⵍⴰⵞⵞⵉⵏ",
+    "le train,the train": "machina ⵎⴰⵛⵉⵏⴰ",
+    "combien ça coûte?,how much does it cost?": "məch7ar ⵎⴰⵛⵃⴰⵔ",
+    "valise,suitcase": "multta ⵎⵓⵍⵟⴰ",
+    "semaine,week": "simana ⵙⵉⵎⴰⵏⴰ",
+    "hôpital,hospital": "spitār ⵙⴱⵉⵜⴰⵔ",
+    "payer le loyer,pay rent": "chra ⵛⵔⴰ",
+    "peu à peu,little by little": "chway chway ⵛⵡⴰⵢ ⵛⵡⴰⵢ",
+    "l'argent en pièces,coins": "ttmənyat ⵜⵎⵏⵢⴰⵜ",
+    "chaussettes,socks": "ttqachia ⵜⴰⵇⵛⵉⵔⴰ",
+    "autobus,bus": "ttubis ⵟⵓⴱⵉⵙ",
+    "la voiture,the car": "ttumubin ⵟⵓⵎⵓⴱⵉⵏ",
+    "message, lettre,letter": "tabrat ⵜⴰⴱⵔⴰⵜ",
+    "le sel,the salt": "taməjja7t ⵜⴰⵎⵊⴰⵃⵜ",
+    "magasin,store": "t7anətt ⵜⵃⴰⵏⵓⵜ",
+    "oui,yes": "wah ⵡⴰⵀ",
+    "rien,nothing": "walu ⵡⴰⵍⵓ",
+    "voir,see": "xzār ⵅⵥⴰⵔ",
+    "travail collaboratif bénévole,volunteer teamwork": "twiza ⵜⵡⵉⵣⴰ",
+    "de la chance,good luck": "azher ⴰⵣⵀⵔ",
+    "suffit,enough": "safi ⵚⴰⴼⵉ",
+    "regarder la télévision,watch TV": "ntferej zi telefaza ⵏⵜⴼⵔⵊ ⵣⵉ ⵜⵉⵍⴼⴰⵣⴰ",
+    "ohh mon dieu,oh my god": "rabinou ⵔⴰⴱⵉⵏⵓ",
+    "je lis le coran,I read the Quran": "tigha lfate7a ⵜⵉⵖⵔⴰ ⵍⴼⴰⵜⵉⵃⴰ",
+    "j'écris une lettre,I write a letter": "tirra thabrat ⵜⵉⵔⴰ ⵜⴰⴱⵔⴰⵜ",
+    "janvier,January": "yenayer ⵢⴰⵏⵢⵉⵔ",
+    "février,February": "furar ⴼⵓⵔⴰⵔ",
+    "mars,March": "maris ⵎⴰⵔⵉⵙ",
+    "je fais cuire le couscous à la vapeur,I steam couscous": "tanefewer sksu ⵜⴰⵏⴼⵓⴰⵔ ⵙⴽⵙⵓ",
+    "fermer la porte,close the door": "quen tawart ⵇⴰⵏ ⵜⴰⵡⴰⵔⵜ",
+    "fermer la bouche,shut your mouth": "qana quemume ⵇⴰⵏⴰ ⵇⴰⵎⵓⵎ",
+    "tais toi,be quiet": "sqar ⵙⵇⴰⵔ",
+    "le sucre,the sugar": "sekkar ⵙⴰⴽⴽⴰⵔ",
+    "tamazight,language of the nobles": "ⵜⴰⵎⴰⵣⵉⵖⵜ ⵏ ⵉⵎⴰⵣⵉⵖⵏ",
+    "amazigh,free man": "ⴰⵎⴰⵣⵉⵖ ⵏ ⵓⵔⴰⵖ",
+    "izran,Riffian music": "ⵉⵣⵔⴰⵏ ⵏ ⴰⵔⵔⵉⴼ",
+    "jeûne,fasting": "zum ⵥⵓⵎ",
+    "mere7ba ⵎⴰⵔⵃⴱⴰ,hello": "bonjour",
+    "hmdlah, chokran u chek,thanks to God, thank you": "comment ça va",
+    "besselama ⴱⵉⵙⵍⴰⵎⴰ,goodbye": "au revoir",
+    "numru ⵏⵉⵎⵔⵓ,number": "numéro",
+    "plastik ⵒⵍⴰⵙⵜⵉⴽ,plastic": "plastique",
+    "susiit ⵚⵓⵚⵉⵟ,sausage": "saucisse",
+    "kartpustal ⴽⴰⵔⵜⵒⵓⵙⵜⴰⵍ,postcard": "carte postale",
+    "llababu ⵍⴰⴱⴰⴱⵓ,sink": "lavabo",
+    "landris ⵍⴰⵏⴷⵔⵉⵙ,address": "adresse",
+    "familya ⴼⴰⵎⵉⵍⵢⴰ,family": "famille",
+    "pintā ⵒⵉⵏⵜⴰ,paint": "pintar",
+    "lappis ⵍⴰⵒⵉⵙ,pencil": "lápiz",
+    "purki ⵒⵓⵔⴽⵉ,why": "pourquoi",
+    "kuku ⴽⵓⴽⵓ,coconut": "coco",
+    "ziru ⵣⵉⵔⵓ,zero": "zéro",
+    "kangaru ⴽⴰⵏⴳⴰⵔⵓ,kangaroo": "canguro",
+    "ddənya ⴷⴻⵏⵢⴰ,world": "monde",
+    "ta3əjjacht ⵟⴰⵄⵊⵊⴰⵛⵟ,fight": "combat",
+    "rəbħā ⵔⴰⴱⵃⴰ,the sea": "la mer",
+    "hul ⵀⵓⵍ,sand": "sable",
+    "rmujjət ⵔⵎⵓⵊⵊⴻⵝ,waves": "les vagues",
+    "chər7chər7 ⵛⵔⵃⵛⵔⵃ,noise": "chatter",
+    "rghabət ⵕⵖⴰⴱⴰⵟ,forest": "la forêt",
+    "ssəjjāt ⵙⴰⵊⵊⴰⵟ,tree": "arbre",
+    "zzinzal ⵥⵉⵏⵣⴰⵍ,earthquake": "séisme",
+    "d7ləm ⴷⵃⵍⴻⵎ,darkness": "obscurité",
+    "nnda ⵏⵏⴸⴰ,rose": "la rose",
+    "lhawa ⵍⵃⴰⵡⴰ,wind": "le vent",
+    "rħar ⵕⵀⴰⵕ,physical state": "l'état physique",
+    "ddəkhkhan ⴷⴻⵅⴰⵏ,smoke": "la fumée",
+    "7ārq ⵃⴰⵔⵇ,burn": "brûler",
+    "chch3ər ⵛⴻⵛⵄⵔ,light": "allumer",
+    "rəfħəm ⵕⴻⴼⵃⵎ,understanding": "la compréhension",
+    "bnadəm ⴱⵏⴰⴸⵎ,human being": "être humain",
+    "mrəch ⵎⵕⴰⵛ,marriage": "mariage",
+    "baba ⴱⴰⴱⴰ,dad": "papa",
+    "yəmma ⵢⴻⵎⵎⴰ,mom": "maman",
+    "lwalidin ⵍⵓⴰⵍⵉⴷⵉⵏ,parents": "les parents",
+    "jəddi ⵊⴰⴷⴷⵉ,grandfather": "grand-père",
+    "ħənna ⵃⴰⵏⵏⴰ,grandmother": "grand-mère",
+    "khari ⵅⴰⵕⵉ,maternal uncle": "oncle maternel",
+    "3zizi ⵄⵣⵉⵣⵉ,uncle": "oncle",
+    "khači ⵅⴰⵞⵉ,maternal aunt": "tante maternelle",
+    "3ənti ⵄⴰⵏⵜⵉ,aunt": "tante",
+    "Ralla ⵔⴰⵍⵍⴰ,madam": "madame",
+    "ābib ⵔⴱⵉⴱ,son-in-law": "beau-fils",
+    "tābift ⵟⴰⵔⴱⵉⵟ,daughter-in-law": "belle-fille",
+    "tajjach ⵜⴰⵊⵊⴰⵛ,prefix": "préfixe",
+    "ajjar ⴰⵊⵊⴰⵕ,prefix": "préfixe",
+    "rmar ⵕⵎⴰⵕ,cash": "les billets d'argent",
+    "rkuri ⵕⴽⵓⵔⵉ,stable": "écurie",
+    "a3əjmi ⴰⵄⴻⵊⵎⵉ,calf": "le veau",
+    "aħuri ⴰⵃⵓⵔⵉ,sheep": "le mouton",
+    "kid7ar ⴽⵉⴷⵃⴰⵔ,lamb": "agneau",
+    "la tête,the head": "azəjjif ⴰⵥⵊⵉⴼ",
+    "cligné de l'oeil,blink of the eye": "ghməz ⵖⵎⴰⵣ",
+    "tach3əft": "kə3ba ⴽⴰⵄⴱⴰ",
+    "la trace dans la main,the trace in the hand": "rimāt ⵕⵉⵎⴰⵔⵜ",
+    "les plumes,the feathers": "arrich ⴰⵕⵉⵛ",
+    "l'accouchement,childbirth": "lwəlda ⵍⵓⴰⵍⴷⴰ",
+    "éternuer,sneeze": "3dəs ⵄⴸⵙ",
+    "s'énerver,get angry": "z3əf ⵣⵄⴼ",
+    "s'éveiller,wake up": "faq ⴼⴰⵇ",
+    "venir au monde,come into the world": "khrəq ⵅⵕⴰⵇ",
+    "le droit de,the right to": "ghā7q ⵖⴰⵃⵇ",
+    "médecin,doctor": "adbib ⴰⴸⴱⵉⴱ",
+    "médicament,medicine": "ddwa ⴷⵡⴰ",
+    "poison": "ssəmm ⵙⴰⵎ",
+    "se mettre dans de mauvaises postures,get into bad postures": "a7ər ⴰⵃⴰⵕ",
+    "reprend tes forces,regain your strength": "āyyə7 ⴰⵔⵢⵢⴻⵃ",
+    "ne pas avoir l'intension de faire quelque chose,not intending to do something": "3gəz ⵄⴳⵣ",
+    "la Famine,the Famine": "buhəyyuf ⴱⵓⵀⵢⵢⵓⴼ",
+    "le four,the oven": "afarran ⴰⴼⴰⵔⴰⵏ",
+    "la marmite,the pot": "māmita ⵎⴰⵔⵎⵉⵟⴰ",
+    "appareil a bouillir,boiling device": "taghəllacht ⵜⴰⵖⴰⵍⴰⵛⵜ",
+    "le poelle,the stove": "rmaqra ⵕⵎⴰⵇⵕⴰ",
+    "une tasse,a cup": "afənjar ⴰⴼⵏⵊⴰⵔ",
+    "la coupe,the cup": "agharraf ⴰⵖⴰⵔⴰⴼ",
+    "copa": "tkuppat ⵝⴽⵓⵒⴰⵜ",
+    "le couteau,the knife": "rmus ⵔⵎⵓⵙ",
+    "fourchette,fork": "furchita ⴼⵓⵔⵛⵉⵟⴰ",
+    "avant le petit déjeuner,before breakfast": "āyyəq ⵔⵢⵇ",
+    "la chaplure": "aqəchchā ⴰⵇⵓⵛⴻⵛⵔⴰ",
+    "mélanger,mix": "ħarrəch ⵃⴰⵔⴰⵛ",
+    "slt,hi": "salam ⵙⴰⵍⴰⵎ",
+    "merci,thank you": "chokran ⵛⵓⴽⵔⴰⵏ",
+    "la soupe,the soup": "taħriat ⵝⴰⵃⵔⵉⵔⴰⵝ",
+    "les piles,the batteries": "apilā ⴰⵒⵉⵍⴰⵔ",
+    "la capuche,the hood": "aqbub ⴰⵇⴱⵓⴱ",
+    "jar pour puiser de l'eau,jar for drawing water": "aqbuch ⴰⵇⴱⵓⵛ ",
+    "le pot,the jar": "aqəddā ⴰⵇⴰⴷⴰⵃ ",
+    "la radio,the radio": "arradyu ⴰⵕⵕⴰⴷⵢⵓ",
+    "le chef de l'orchestre musical,the musical orchestra leader": "arrayəs ⴰⵔⵔⴰⵢⴻⵙ",
+    "gagne,win": "arrbə7 ⴰⵔⵔⴱⴰⵃ",
+    "l'araignée,the spider": "arrtira ⴰⵔⵜⵉⵔⴰ",
+    "l'ésprit,the spirit": "arru7 ⴰⵕⵕⵓⵃ",
+    "le riz,the rice": "aruze ⴰⵔⵔⵓⵣ",
+    "le voleur,the thief": "achəffār ⴰⵛⴼⴰⵔ",
+    "lancer de la pierre pour frapper,throw a stone to hit": "ārchəg ⴰⵔⵛⴻⴳ",
+    "le selhame": "asərham ⴰⵙⵔⵀⴰⵎ",
+    "le plafond,the ceiling": "asqif ⴰⵙⵇⵉⴼ",
+    "le thé,the tea": "atay ⴰⵜⴰⵢ",
+    "le commerce,the commerce": "atijari ⴰⵜⵉⵊⴰⵔⵉ",
+    "nettoyer l'écurie,clean the stable": "atarras ⴰⵜⴰⵔⵔⴰⵙ",
+    "afā7an ⴰⴼⴰⵃⴰⵏ,festivities": "les fêstivités",
+    "abākiw ⴰⴱⴰⴽⵉⵡ,goods": "les biens",
+    "rbaz ⵕⴱⴰⵣ,falcon": "faucon",
+    "wət7wat7 ⵡⴻⵜⵃⵡⴰⵜⵃ": "rwəd7wad7",
+    "babaghayyu ⴱⴰⴱⴰⵖⴰⵢⵓ,parrot": "péroquet",
+    "muka ⵎⵓⴽⴰ,owl": "hibou",
+    "rqirch ⵔⵇⵉⵔⵛ,shark": "requin",
+    "akhmār ⴰⵅⵎⴰⵔ,scarf": "le foulard",
+    "nnamus ⵏⵏⴰⵎⵓⵙ,mosquitoes": "moustiques",
+    "buchchər ⴱⵓⵛⴻⵛⴰⵔ,snails": "escargots",
+    "tqāqra ⵟⵇⴰⵇⵔⴰ,frog sound": "le son de la grenouille",
+    "ch3ər7 ⵛⵄⴻⵔⵃ": "chch3ā",
+    "aqchua ⴰⵇⵛⵓⴰ,peel fava beans": "éplucher les fèves",
+    "tanəwwāt ⵝⴰⵏⵓⵡⴰⵝ,radiant": "rayonnantes",
+    "azəjjif ⴰⵥⵊⵉⴼ,head": "la tête",
+    "ghməz ⵖⵎⴰⵣ,eye blink": "cligné de l'oeil",
+    "kə3ba ⴽⴰⵄⴱⴰ": "tach3əft",
+    "rimāt ⵕⵉⵎⴰⵔⵜ,palm lines": "la trace dans la main",
+    "arrich ⴰⵕⵉⵛ,feathers": "les plumes",
+    "lwəlda ⵍⵓⴰⵍⴷⴰ,childbirth": "l'accouchement",
+    "3dəs ⵄⴸⵙ,sneeze": "éternuer",
+    "z3əf ⵣⵄⴼ,get angry": "s'énerver",
+    "faq ⴼⴰⵇ,wake up": "s'éveiller",
+    "khrəq ⵅⵕⴰⵇ,be born": "venir au monde",
+    "ghā7q ⵖⴰⵃⵇ,the right to": "le droit de",
+    "adbib ⴰⴸⴱⵉⴱ,doctor": "médecin",
+    "ddwa ⴷⵡⴰ,medicine": "médicament",
+    "ssəmm ⵙⴰⵎ,poison": "poison",
+    "a7ər ⴰⵃⴰⵕ,bad posture": "se mettre dans de mauvaises postures",
+    "āyyə7 ⴰⵔⵢⵢⴻⵃ,regain strength": "reprend tes forces",
+    "3gəz ⵄⴳⵣ,lack intention": "ne pas avoir l'intention de faire quelque chose",
+    "buhəyyuf ⴱⵓⵀⵢⵢⵓⴼ,famine": "la Famine",
+    "afarran ⴰⴼⴰⵔⴰⵏ,oven": "le four",
+    "māmita ⵎⴰⵔⵎⵉⵟⴰ,pot": "la marmite",
+    "taghəllacht ⵜⴰⵖⴰⵍⴰⵛⵜ,boiling device": "appareil à bouillir",
+    "rmaqra ⵕⵎⴰⵇⵕⴰ,stove": "le poêle",
+    "afənjar ⴰⴼⵏⵊⴰⵔ,cup": "une tasse",
+    "agharraf ⴰⵖⴰⵔⴰⴼ,goblet": "la coupe",
+    "tkuppat ⵝⴽⵓⵒⴰⵜ": "copa",
+    "rmus ⵔⵎⵓⵙ,knife": "le couteau",
+    "furchita ⴼⵓⵔⵛⵉⵟⴰ,fork": "fourchette",
+    "āyyəq ⵔⵢⵇ,before breakfast": "avant le petit déjeuner",
+    "aqəchchā ⴰⵇⵓⵛⴻⵛⵔⴰ": "la chaplure",
+    "ħarrəch ⵃⴰⵔⴰⵛ,mix": "mélanger",
+    "salam ⵙⴰⵍⴰⵎ,hi": "slt",
+    "chokran ⵛⵓⴽⵔⴰⵏ,thank you": "merci",
+    "taħriat ⵝⴰⵃⵔⵉⵔⴰⵝ,soup": "la soupe",
+    "apilā ⴰⵒⵉⵍⴰⵔ,batteries": "les piles",
+    "aqbub ⴰⵇⴱⵓⴱ,hood": "la capuche",
+    "aqbuch ⴰⵇⴱⵓⵛ,water jar": "jar pour puiser de l'eau",
+    "aqəddā ⴰⵇⴰⴷⴰⵃ,jar": "le pot",
+    "arradyu ⴰⵕⵕⴰⴷⵢⵓ,radio": "la radio",
+    "arrayəs ⴰⵔⵔⴰⵢⴻⵙ,orchestra leader": "le chef de l'orchestre musical",
+    "arrbə7 ⴰⵔⵔⴱⴰⵃ,win": "gagne",
+    "arrtira ⴰⵔⵜⵉⵔⴰ,spider": "l'araignée",
+    "arru7 ⴰⵕⵕⵓⵃ,spirit": "l'esprit",
+    "aruze ⴰⵔⵔⵓⵣ,rice": "le riz",
+    "achəffār ⴰⵛⴼⴰⵔ,thief": "le voleur",
+    "ārchəg ⴰⵔⵛⴻⴳ,stone throwing": "lancer de la pierre pour frapper",
+    "asərham ⴰⵙⵔⵀⴰⵎ": "le selhame",
+    "asqif ⴰⵙⵇⵉⴼ,ceiling": "le plafond",
+    "atay ⴰⵜⴰⵢ,tea": "le thé",
+    "atijari ⴰⵜⵉⵊⴰⵔⵉ,commerce": "le commerce",
+    "atarras ⴰⵜⴰⵔⵔⴰⵙ,clean stable": "nettoyer l'écurie",
+    "akhbuch ⴰⵅⴱⵓⵛ,scratch": "griffer",
+    "akhəddam ⴰⵅⴷⴰⵎ,worker": "travailleur",
+    "akhənza ⴰⵅⴻⵏⵣⴰ,squint": "plisser les yeux d'un mauvais regard",
+    "akhəyyad ⴰⵅⴻⵢⴰⴹ,tailor": "tailleur",
+    "ārkhu ⵔⴰⵅⵓ,good price": "bon prix",
+    "akham ⴰⵅⵅⴰⵎ,tent": "une tente",
+    "ajjār ⴰⵊⵊⴰⵔ,neighbor": "voisin",
+    "a3əskari ⴰⵄⴰⵙⴽⴰⵔⵉ,military": "militaire",
+    "a3əssas ⴰⵄⴻⵙⵙⴰⵙ,night guard": "gardien de nuit",
+    "a3ətrus ⴰⵄⴻⵜⵔⵓⵙ,billy goat": "le bouc",
+    "bachklit ⴱⴰⵛⴽⵍⵉⵜ,bicycle": "bicyclette",
+    "bitəlma ⴱⵉⵜⴻⵍⵎⴰ,toilet": "les toilettes",
+    "barra ⴱⴰⵕⵕⴰ,outside": "Dehors",
+    "barrə7 ⴱⴰⵔⵔⴻⵃ,yesterday": "hier",
+    "barra7 ⴱⴰⵔⵔⴰⵃ,speak loudly": "parler à haute voix",
+    "bda ⴱⴷⴰ,start": "commencer à",
+    "bəddər ⴱⴻⴷⴻⵔ,change": "changer de",
+    "bna ⴱⵏⴰ,delicious": "délicieux plat",
+    "bulun ⴱⵓⵍⵓⵏ,balloon": "bullôt",
+    "busəkka ⴱⵓⵙⴻⴽⴰ,snake": "serpent",
+    "buchər ⴱⵓⵛⵛⴻⵔ,slipper": "babouche",
+    "janklat ⵊⴰⵏⴽⵍⴰⵟ,sandal": "la sandale",
+    "ddhən ⴷⵀⴰⵏ,grease": "gratiner avec de l'huile",
+    "ddra ⴷⴻⴷⵔⴰ,corn": "le maïs",
+    "dəbbār ⴷⴻⴱⴰⵔ,find solutions": "chercher des solutions",
+    "dəɣya ⴷⴻⵖⵢⴰ,do quickly": "faire vite",
+    "falta ⴼⴰⵍⵟⴰ,error": "erreur",
+    "fāz ⴼⴰⵔⵣ,speak slowly": "parler lentement pour une meilleure compréhension",
+    "fəttəch ⴼⴰⵜⴻⵛ,search": "rechercher",
+    "fhəm ⴼⵀⴻⵎ,understand": "comprends",
+    "f7ər ⴼⵃⴻⵔ,do": "faire",
+    "fluka ⴼⵍⵓⴽⴰ,small boat": "petit bateau",
+    "frina ⴼⵔⵉⵏⴰ,brake": "frein",
+    "fsər ⴼⵙⴻⵔ,cut meat": "couper la viande en morceaux",
+    "fumada ⴼⵓⵎⴰⴷⴰ,ointment": "pommade",
+    "garra ⴳⴰⵔⵔⴰ,war": "guerre",
+    "garru ⴳⴰⵔⵔⵓ,cigarette": "cigarette",
+    "jjəqqad ⵊⴰⵇⴰⴹ,pliers": "le pince",
+    "ɣārbər ⵖⴰⵔⴱⴰⵔ,sieve": "le tamis",
+    "ɣdār ⵖⴷⴰⵔ,traitor": "traître",
+    "ɣdəs ⵖⴹⴰⵙ,dive": "plonger",
+    "7arrəm ⵃⵔⴻⵎ,forbid": "interdire",
+    "7acha ⵃⴰⵛⴰ,my apologies": "par méprise, mes excuses",
+    "7aj ⵃⴰⵊ,Mr. Pilgrim": "mr pélerin",
+    "7dəq ⵃⴷⴻⵇ,haircut": "se faire coiffer les cheveux avec un ciseaux",
+    "7əddət ⵃⴰⴷⴻⵜ,modernization": "modernisation",
+    "7fa ⵃⴼⴰ,barefoot": "pied nu",
+    "isəm ⵉⵙⵎ,first name": "prénom",
+    "kachəf ⴽⵛⴼ,lose color": "perdre sa couleur d'origine peau",
+    "kəbb ⴽⴻⴱ,fill tea": "remplir le verre de thé",
+    "kəyyəf ⴽⵉⵢⴻⴼ,smoke kif": "fumer le kif",
+    "ktār ⴽⵜⴰⵔ,more": "plus",
+    "kulur ⴽⵓⵍⵓⵔ,color": "couleur",
+    "kumasa ⴽⵓⵎⴰⵙⴰ,start": "commencer",
+    "lamba ⵍⴰⵎⴱⴰ,lamp": "lampe",
+    "lbala ⵍⴱⴰⵍⴰ,shovel": "la pelle",
+    "lfaqi ⵍⴼⴰⵇⵉ,Quran teacher": "éducateur en msid",
+    "lkar ⵍⴽⴰⵕ,bus": "le bus",
+    "lkitabn ⵍⴽⵉⵜⴰⴱ,fate": "la Destinée",
+    "llətchin ⵍⴰⵞⵞⵉⵏ,orange": "l'orange",
+    "machina ⵎⴰⵛⵉⵏⴰ,train": "le train",
+    "məch7ar ⵎⴰⵛⵃⴰⵔ,how much": "combien ça coûte?",
+    "multta ⵎⵓⵍⵟⴰ,suitcase": "valise",
+    "simana ⵙⵉⵎⴰⵏⴰ,week": "semaine",
+    "spitār ⵙⴱⵉⵜⴰⵔ,hospital": "hôpital",
+    "chra ⵛⵔⴰ,pay rent": "payer le loyer",
+    "chway chway ⵛⵡⴰⵢ ⵛⵡⴰⵢ,little by little": "peu à peu",
+    "ttmənyat ⵜⵎⵏⵢⴰⵜ,coins": "l'argent en pièces",
+    "ttqachia ⵜⴰⵇⵛⵉⵔⴰ,socks": "chaussettes",
+    "ttubis ⵟⵓⴱⵉⵙ,bus": "autobus",
+    "ttumubin ⵟⵓⵎⵓⴱⵉⵏ,car": "la voiture",
+    "tabrat ⵜⴰⴱⵔⴰⵜ,letter": "message, lettre",
+    "t7anətt ⵜⵃⴰⵏⵓⵜ,store": "magasin",
+    "wah ⵡⴰⵀ,yes": "oui",
+    "zum ⵥⵓⵎ,fasting": "jeûne",
+    "walu ⵡⴰⵍⵓ,nothing": "rien",
+    "xzār ⵅⵥⴰⵔ,see": "voir",
+    "twiza ⵜⵡⵉⵣⴰ,volunteer work": "travail collaboratif bénévole",
+    "azher ⴰⵣⵀⵔ,good luck": "de la chance",
+    "safi ⵚⴰⴼⵉ,enough": "suffit",
+    "ntferej zi telefaza ⵏⵜⴼⵔⵊ ⵣⵉ ⵜⵉⵍⴼⴰⵣⴰ,watch TV": "regarder la télévision",
+    "rabinou ⵔⴰⴱⵉⵏⵓ,oh my god": "ohh mon dieu",
+    "tigha lfate7a ⵜⵉⵖⵔⴰ ⵍⴼⴰⵜⵉⵃⴰ,read Quran": "je lis le coran",
+    "tirra thabrat ⵜⵉⵔⴰ ⵜⴰⴱⵔⴰⵜ,write letter": "j'écris une lettre",
+    "yenayer ⵢⴰⵏⵢⵉⵔ,January": "janvier",
+    "furar ⴼⵓⵔⴰⵔ,February": "février",
+    "maris ⵎⴰⵔⵉⵙ,March": "mars",
+    "tanefewer sksu ⵜⴰⵏⴼⵓⴰⵔ ⵙⴽⵙⵓ,steam couscous": "je fais cuire le couscous à la vapeur",
+    "quen tawart ⵇⴰⵏ ⵜⴰⵡⴰⵔⵜ,close door": "fermer la porte",
+    "qana quemume ⵇⴰⵏⴰ ⵇⴰⵎⵓⵎ,shut mouth": "fermer la bouche",
+    "sqar ⵙⵇⴰⵔ,be quiet": "tais toi",
+    "sekkar ⵙⴰⴽⴽⴰⵔ,sugar": "le sucre",
+    "ⵜⴰⵎⴰⵣⵉⵖⵜ,Tamazight": "langue des nobles",
+    "ini nech dariffi ⵉⵏⵉ ⵏⴻⵛ ⴷⴰⵔⵉⴼⵉ,I am Riffian": "dit je suis un Riffain",
+    "ini nech tarifacht ⵉⵏⵉ ⵏⴻⵛ ⵜⴰⵔⵉⴼⴰⵛⵜ,I am Riffaine": "dit je suis une Riffaine",
+    "ⵏⴻⵛ ⴹⵓⵣⴰⵖ,I'm hungry": "j'ai faim",
+    "refdar ⵔⴼⴷⴰⵔ,lunch": "déjeuner",
+    "irar ⵉⵔⴰⵔ,games": "jeux",
+    "ourar ⵓⵔⴰⵔ,wedding": "mariage",
+    "inou ⵉⵏⵓ,mine": "le mien",
+    "chigh ⵛⵉⵖ,eat": "manger",
+    "aghrum ⴰⵖⵔⵓⵎ,bread": "le pain",
+    "cheda7 ⵛⴹⴰⵃ,dance": "danser",
+    "3afak ⵄⴰⴼⴰⴽ,please": "s'il vous plaît",
+    "sm7ayi ⵙⴰⵎⵃⴰⵢⵉ,excuse me": "excusez-moi",
+    "manis ⵎⴰⵏⵉⵙ,where": "où",
+    "malmy ⵎⴰⵍⵎⵢ,when": "quand",
+    "mamech ⵎⴰⵎⴻⵛ,how": "comment",
+    "mayemi ⵎⴰⵢⴰⵎⵉ,why": "pourquoi",
+    "labasse ⵍⴰⴱⴰⵙ,hello": "salut ça va",
+    "chenou jdid ⵛⵏⵓ ⵊⴷⵉⴷ,what's new": "quoi de neuf",
+"ⴳⴰⵄ ⴳⴰⵄ ⴰ ⵣⵓⴱⵉⴷⴰ":"Rigole a zoubida ga3ga3 a zoubida",
+"Rigole a zoubidaⴰ":"ⴳⴰⵄ ⴳⴰⵄ ⴰ ⵣⵓⴱⵉⴷⴰ ga3ga3 a zoubida",
+"ga3ga3 a zoubida":"Rigole a zoubida ⴳⴰⵄ ⴳⴰⵄ ⴰ ⵣⵓⴱⵉⴷⴰ",    "ak ⴰⴽ,with": "avec",
+    "ssa7it ⵚⴰⵃⵉⵜ,with pleasure": "avec plaisir",
+    "mzyane ⵎⵣⵢⴰⵏ,it works": "ça marche",
+    "tekhsegh chem ⵜⵅⵙⵖ ⵛⴻⵎ,I love you": "je t'aime",
+    "yugui ⵢⵓⴳⵉ,he doesn't want": "il ne veut pas",
+    "tugui ⵜⵓⴳⵉ,she doesn't want": "elle ne veut pas",
+    "izran ⵉⵣⵔⴰⵏ,Riffian music": "musique Riffaine",
+    "tuadatha ⵜⵓⴷⴰⵜⴰ,life": "la vie",
+    "atay ⴰⵜⴰⵢ,tea": "le thé",
+    "mere7ba ⵎⴰⵔⵃⴱⴰ,welcome": "bienvenue",
+    "tamraqt ⵜⴰⵎⵔⴰⵇⵜ,sauce": "la sauce",
+    "uma ⵓⵎⴰ,my brother": "mon frère",
+    "utchma ⵓⵞⵎⴰ,my sister": "ma sœur",
+    "ayetma ⴰⵢⵜⵎⴰ,my brothers": "mes frères",
+    "issma ⵉⵙⵙⵎⴰ,my sisters": "mes sœurs",
+    "aghi ⴰⵖⵉ,milk": "lait",
+    "aman ⴰⵎⴰⵏ,water": "eau",
+    "rbachua ⵔⴱⴰⵛⵓⴰ,fig": "figue",
+    "tibesfin ⵜⵉⴱⵙⴼⵉⵏ,onion": "oignon",
+    "ddellich ⴷⵍⵍⵉⵛ,watermelon": "pastèque",
+    "çabun ⵚⴰⴱⵓⵏ,soap": "savon",
+    "tateffahit ⵜⴰⵜⴻⴼⴰⵃⵉⵜ,apple": "pomme",
+    "afunas ⴰⴼⵓⵏⴰⵙ,ox": "bœuf",
+    "tafunast ⵜⴰⴼⵓⵏⴰⵙⵜ,cow": "vache",
+    "qqim":"Assieds-toi ! ⵇⵉⵎ",
+"Assieds-toi !":"qqim ! ⵇⵉⵎ",
+"ⵇⵉⵎ":"Assieds-toi ! qqim",
+"timura":"pays ⵜⵉⵎⵓⵔⴰ",
+"pays":"timura ⵜⵉⵎⵓⵔⴰ",
+"ⵜⵉⵎⵓⵔⴰ":"pays timura",
+"tammurt":"terre ⵜⴰⵎⵓⵔⵜ",
+"terre":"tammurt ⵜⴰⵎⵓⵔⵜ",
+"ⵜⴰⵎⵓⵔⵜ":"terre tammurt",
+"timira":"barbes ⵜⵉⵎⵉⵔⴰ",
+"barbes":"ⵜⵉⵎⵉⵔⴰ timira",
+"ⵜⵉⵎⵉⵔⴰ":"barbes timira",
+"yabyutat":"mouettes ⵢⴰⴱⵢⵓⵜⴰⵜ",
+"mouettes":"yabyutat ⵢⴰⴱⵢⵓⵜⴰⵜ",
+"ⵢⴰⴱⵢⵓⵜⴰⵜ":"mouettes yabyutat",
+"mmi":"mon fils ⵎⵎⵉ",
+"mon fils":"mmi ⵎⵎⵉ",
+"ⵎⵎⵉ":"mon fils mmi",
+"utchma-s n Fatima":"sa sœur à Fatima ⵓⵞⵎⴰⵙ ⵏ ⴼⴰⵟⵉⵎⴰ",
+"ⵓⵞⵎⴰⵙ ⵏ ⴼⴰⵟⵉⵎⴰ":"sa sœur à Fatima utchma-s n Fatima",
+"sa sœur à Fatima":"utchma-s n Fatima ⵓⵞⵎⴰⵙ ⵏ ⴼⴰⵟⵉⵎⴰ",
+"djeddi-s n Mohamed":"son grand-père à Mohamed ⴶⴰⴷⵉⵙ ⵏ ⵎⵓⵃⴰⵎⴰⴷ",
+"son grand-père à Mohamed":"djeddi-s n Mohamed ⴶⴰⴷⵉⵙ ⵏ ⵎⵓⵃⴰⵎⴰⴷ",
+"ⴶⴰⴷⵉⵙ ⵏ ⵎⵓⵃⴰⵎⴰⴷ":"son grand-père à Mohamed djeddi-s n Mohamed",
+"fad":"soif ⴼⴰⴷ",
+"soif":"fad ⴼⴰⴷ",
+"ⴼⴰⴷ":"soif fad",
+"temzi":"jeunesse ⵜⵎⵣⵉ",
+"jeunesse":"temzi ⵜⵎⵣⵉ",
+"ⵜⵎⵣⵉ":"jeunesse temzi",
+"macha":"nourriture ⵎⴰⵛⵛⴰ",
+"nourriture":"macha ⵎⴰⵛⵛⴰ",
+"ⵎⴰⵛⵛⴰ":"nourriture macha",    
+"ameqqran":"grand ⴰⵎⵇⵔⴰⵏ",
+"grand":"ameqqran ⴰⵎⵇⵔⴰⵏ",
+"ⴰⵎⵇⵔⴰⵏ":"grand ameqqran",
+"azru":"les cailloux ⴰⵥⵔⵓ",
+"ⴰⵥⵔⵓ":"les cailloux azru",
+"les cailloux":"azru ⴰⵥⵔⵓ",
+"tazrut":"la roche ⵜⴰⵥⵔⵓⵜ",
+"ⵜⴰⵥⵔⵓⵜ":"tazrut ⵜⴰⵥⵔⵓⵜ",
+"la roche":"tazrut ⵜⴰⵥⵔⵓⵜ", 
+"pabu":"dinde ⵒabu",
+"ⵒabu":"dinde pabu",
+"dinde":"pabu ⵒabu",
+"t7anet":"boutique ⵝⵃⴰⵏⵓⵜ",
+"ⵝⵃⴰⵏⵓⵜ":"boutique t7anet",
+"boutique":"t7anet ⵝⵃⴰⵏⵓⵜ",
+"ṭamza":"ogresse ⵝⴰⵎⵥⴰ",
+"ogresse":"ṭamza ⵝⴰⵎⵥⴰ",
+"ⵝⴰⵎⵥⴰ":"ogresse ṭamza",
+"tizi":"vallée ⵜⵉⵣⵉ",
+"vallée":"tizi ⵜⵉⵣⵉ",
+"ⵜⵉⵣⵉ":"vallée tizi",
+"karnu":"charrette ⴽⴰⵔⵏⵓ",
+"charrette":"karnu ⴽⴰⵔⵏⵓ",
+"ⴽⴰⵔⵏⵓ":"charrette karnu", 
+"anu":"puits ⴰⵏⵓ",
+"puits":"anu ⴰⵏⵓ",
+"ⴰⵏⵓ":"puits anu",
+"uchen":"chacal ⵓⵛⴻⵏ",
+"chacal":"uchen ⵓⵛⴻⵏ",
+"ⵓⵛⴻⵏ":"chacal uchen",
+"afedja7":"agriculteur ⴰⴼⴶⴰⵃ",
+"agriculteur":"afedja7 ⴰⴼⴶⴰⵃ",
+"ⴰⴼⴶⴰⵃ":"agriculteur afedja7",
+"poissons":"isserman ⵉⵙⵔⵎⴰⵏ",
+"isserman":"poissons ⵉⵙⵔⵎⴰⵏ",
+"ⵉⵙⵔⵎⴰⵏ":"poissons ⵉⵙⵔⵎⴰⵏ",
+"udem":"visage ⵓⴷⵎ",
+"visage":"udem ⵓⴷⵎ",
+"ⵓⴷⵎ":"visage udem",
+"ifis":"hyène ⵉⴼⵉⵙ",
+"hyène":"ⵉⴼⵉⵙ ifis",
+"ⵉⴼⵉⵙ":"hyène ifis",
+"awar":"mot ⴰⵡⴰⵔ",
+"mot":"awar ⴰⵡⴰⵔ",
+"ⴰⵡⴰⵔ":"mot awar",
+"azwagh":"racine ⴰⵣⵡⴰⵖ",
+"racine":"azwagh ⴰⵣⵡⴰⵖ",
+"ⴰⵣⵡⴰⵖ":"racine azwagh",
+"imslemen":"musulmans ⵉⵎⵙⵍⵎⴰⵏ",
+"musulmans":"imslemen ⵉⵎⵙⵍⵎⴰⵏ",
+"ⵉⵎⵙⵍⵎⴰⵏ":"musulmans imslemen",
+"itri":"étoile ⵉⵝⵔⵉ",
+"étoile":"itri ⵉⵝⵔⵉ",
+"ⵉⵝⵔⵉ":"étoile itri",
+"izi":"mouche ⵉⵣⵉ",
+"mouche":"izi ⵉⵣⵉ",
+"ⵉⵣⵉ":"mouche izi",
+"djidj":"cheville ⴶⵉⴶ",
+"ⴶⵉⴶ":"djidj cheville",
+"cheville":"ⴶⵉⴶ djidj",
+"dad":"doigt ⴹⴰⴹ",
+"ⴹⴰⴹ":"doigt dad",
+"doigt":"dad ⴹⴰⴹ",
+"tghaṭṛt":"chèvre ⵜⵖⴰⵝⵔⵝ",
+"chèvre":"tghaṭṛt ⵜⵖⴰⵝⵔⵝ",
+"ⵜⵖⴰⵝⵔⵝ":"chèvre tghaṭṛt",
+"adĭid":"oiseau ⴰⴶⵉⴹ",
+"oiseau":"adĭid ⴰⴶⵉⴹ",
+"ⴰⴶⵉⴹ":"oiseau adĭid",
+    "vache": "tafunast ⵜⴰⴼⵓⵏⴰⵙⵜ",
+"homme": "aryaz ⴰⵔⵢⴰⵣ",
+"aryaz": "aryaz homme",
+"ⴰⵔⵢⴰⵣ": "aryaz ⴰⵔⵢⴰⵣ",
+"femme":"tamghart ⵝⴰⵎⵖⴰⵔⵝ",
+"tamghart": "femme ⵝⴰⵎⵖⴰⵔⵝ",
+"ⵝⴰⵎⵖⴰⵔⵝ": "tamghart femme",
+"bouc": "amyan ⴰⵎⵢⴰⵏ",
+"amyan": "bouc ⴰⵎⵢⴰⵏ",
+"ⴰⵎⵢⴰⵏ": "amyan bouc", 
+"isari":"bélier ⵉⵙⴰⵔⵉ",
+"bélier":"isari ⵉⵙⴰⵔⵉ",
+"ⵉⵙⴰⵔⵉ":"bélier ⵉⵙⴰⵔⵉ",
+"tikhsi":"brebis ⵜⵉⵅⵙⵉ",
+"brebis":"tikhsi ⵜⵉⵅⵙⵉ",
+"ⵜⵉⵅⵙⵉ":"brebis tikhsi",
+"yis":"cheval ⵢⵉⵙ",
+"cheval":"yis ⵢⵉⵙ",
+"ⵢⵉⵙ":"cheval yis", 
+"titt":"œil ⵜⵉⵟ",
+"ⵜⵉⵟ":"œil titt",
+"œil":"titt ⵜⵉⵟ",
+"attaw":"grand œil ⴰⵟⴰⵡ",
+"grand œil":"attaw ⴰⵟⴰⵡ",
+"ⴰⵟⴰⵡ":"grand œil attaw",
+"Fus":"main ⴼⵓⵙ",
+"main":"Fus ⴼⵓⵙ",
+"ⴼⵓⵙ":"main Fus", 
+"taghenadjachth":"cuillère ⵜⴰⵖⵏⴶⴰⵛⵝ",
+"ⵜⴰⵖⵏⴶⴰⵛⵝ":"cuillère taghenadjachth",
+"cuillère":"taghenadjachth ⵜⴰⵖⵏⴶⴰⵛⵝ",
+"taqbucht":"jarre à eau ⵝⴰⵇⴱⵓⵛⵜ",
+"jarre à eau":"taqbucht ⵝⴰⵇⴱⵓⵛⵜ",
+"ⵝⴰⵇⴱⵓⵛⵜ":"jarre à eau taqbucht",
+"yechur-it s waman":"il’a rempli avec de l’eau ⵢⵓⵛⵛⵓⵔ ⵉⵜ ⵙⵡⴰⵎⴰⵏ",
+"ⵢⵓⵛⵛⵓⵔ ⵉⵜ ⵙⵡⴰⵎⴰⵏ":"il’a rempli avec de l’eau yechur-it s waman",
+"il’a rempli avec de l’eau":"ⵢⵓⵛⵛⵓⵔ ⵉⵜ ⵙⵡⴰⵎⴰⵏ ⵢⴻⵛⵛⵓⵔ ⵉⵜ ⵙⵡⴰⵎⴰⵏ",
+    "bonjour,salut": "mere7ba, chokran u chek ? , ⵎⴰⵔⵃⴱⴰ ⵛⵓⴽⵔⴰⵏ ⵓ ⵛⴻⴽ",
+    "merci beaucoup": "ssa7it,ⵚⴰⵃⵉⵝ.",
+    "merci infiniment": "Achye7fed rebi,ⴰⵛⵢⵃⴼⴰⴹ ⵔⴰⴱⵉ",
+    "ⴰⵛⵢⵃⴼⴰⴹ ⵔⴰⴱⵉ": "Achye7fed rebi,merci infiniment",
+    "Achye7fed rebi": "ⴰⵛⵢⵃⴼⴰⴹ ⵔⴰⴱⵉ,merci infiniment ",
+    "au revoir adieu": "besselama,ⴱⵉⵙⵍⴰⵎⴰ",
+    "le numéro téléphone": "numru tilifone ,ⵏⵓⵎⵔⵓ ⵜⵉⵍⵉⴼⵓⵏ",
+    "un sachet de plastique": "Mika plastik ,ⵎⵉⴽⴰ ⴷ ⵒⵍⴰⵙⵜⵉⴽ",
+    "les saucisse grillées": "susiit mechwi , ⵚⵓⵚⵉⵟ ⵎⵛⵓⵉ",
+    "le lavabo de cuisine": "llababu d anwal,ⵍⴰⴱⴰⴱⵓ ⴷⴰⵏⵓⴰⵍ",
+    "l'adresse de la maison": "landris d tadart,ⵍⴰⵏⴷⵔⵉⵙ ⴷ ⵜⴰⴷⴰⵔⵝ",
+    "la famille trés importantes": "familya dyis lfayda,ⴼⴰⵎⵉⵍⵢⴰ ⴷⴰⵢⵉⵙ ⴼⴰⵢⴷⴰ",
+    "pourquoi tu manges du poissons": "purki atchet iserman,ⵒⵓⵔⴽⵉ ⴰⵜⵛⵝ ⵉⵙⵔⵎⴰⵏ",
+    "le coco est tres bon": "kuku dasb7an,ⴽⵓⴽⵓ ⴷⴰⵙⴱⵃⴰⵏ !",
+    "zéro est un nombre": "ziru Raqem , ⵣⵉⵔⵓ ⵔⴰⵇⴰⵎ",
+    "le monde est grand": "ddənya tamqrante , ⴷⴻⵏⵢⴰ ⵝⴰⵎⵇⵔⴰⵏⵝ",
+    "le combat est féroce": "ta3əjjacht tamjhedth , ⵟⴰⵄⵊⵊⴰⵛⵟ ⵜⴰⵎⵊⴻⵀⴷⵝ",
+    "la mer rouge": "reb7ar azogagh , ⵔⴰⴱⵃⴰ ⴰⵣⵓⴳⴰⵖ",
+    "les vagues de la mer": "rmujjet d reb7ar , ⵔⵎⵓⵊⵊⴻⵝ ⴷ ⵔⴰⴱⵃⴰⵔ",
+    "ⵜⵓⵄⴰⵔ ⵢⴻⵎⴰⵛ ⵎⵛⵃⴰⵔ ⵜⵓⵄⴰⵔ": "tu3ar yemach mche7ar tu3ar,ta mére est trés sévére",
+    "ta mére est trés sévére": "tu3ar yemach mche7ar tu3ar,ⵜⵓⵄⴰⵔ ⵢⴻⵎⴰⵛ ⵎⵛⵃⴰⵔ ⵜⵓⵄⴰⵔ",
+    "tu3ar yemach mche7ar tu3ar": "ⵜⵓⵄⴰⵔ ⵢⴻⵎⴰⵛ ⵎⵛⵃⴰⵔ ⵜⵓⵄⴰⵔ,ta mére est trés sévére",
+    "ⵜⴰⵔⵉⴼⵛⵜ ⵜⴰⵜⵖⵏⴻⵊ ⵉⵣⵔⴰⵏ": " les femmes riffaines chantes de beaux pôemes,tarifacht teghnajth izran",
+    "tarifacht teghnajth izran": " les femmes riffaines chantes de beaux pôemes,ⵜⴰⵔⵉⴼⵛⵜ ⵜⴰⵜⵖⵏⴻⵊ ⵉⵣⵔⴰⵏ",
+    "les femmes riffaines chantes de beaux pôemes": "tarifacht teghnajth izran,ⵜⴰⵔⵉⴼⵛⵜ ⵜⴰⵜⵖⵏⴻⵊ ⵉⵣⵔⴰⵏ",
+     "lmoustaqbal negh":"pour notre avenir ⵅ ⵍⵎⵓⵙⵜⵇⴱⴰⵍ ⵏⴰⵖ",
+    "pour notre avenir":"lmoustaqbal negh ⵅ ⵍⵎⵓⵙⵜⵇⴱⴰⵍ ⵏⴰⵖ",
+    "ⵍⵎⵓⵙⵜⵇⴱⴰⵍ ⵏⴰⵖ": "pour notre avenir lmoustaqbal negh",
+    "ithran dg ujenna": "les étoiles du ciel, ⵉⵝⵔⴰⵏ ⴷⴳ ⵓⵊⵏⵏⴰ",
+    "les étoiles du ciel": "ithran dg ujenna, ⵉⵝⵔⴰⵏ ⴷⴳ ⵓⵊⵏⵏⴰ",
+    "ⵉⵝⵔⴰⵏ ⴷⴳ ⵓⵊⵏⵏⴰ": "les étoiles du ciel,ithran dg ujenna",
+    "boire du thé": "swighe atay ⵙⵓⵉⵖ ⴰⵜⴰⵢ",
+    "ⵙⵓⵉⵖ ⴰⵜⴰⵢ": "swighe atay boire du thé",
+    "swighe atay": "boire du thé ⵙⵓⵉⵖ ⴰⵜⴰⵢ",
+    "rien du tout": "walou walou , ⵡⴰⵍⵓ ⵡⴰⵍⵓ",
+    "walou walou": "rien du tout, ⵡⴰⵍⵓ ⵡⴰⵍⵓ",
+    "ⵡⴰⵍⵓ ⵡⴰⵍⵓ": "walou walou ,rien du tout",
+    "ⴽⴰⵙⵙ ⵏ ⵡⴰⵜⴰⵢ": "un verre de thé ,kasse nwatay",
+    "kasse nwatay": "un verre de thé ,ⴽⴰⵙⵙ ⵏ ⵡⴰⵜⴰⵢ",
+    "un verre de thé": "kasse nwatay,ⴽⴰⵙⵙ ⵏ ⵡⴰⵜⴰⵢ",
+    "Khessegh titawin nem": "j'aimes tes yeux de biche,ⵅⵙⵖ ⵜⵉⵟⴰⵡⵉⵏ ⵏⴻⵎ",
+    "j'aimes tes yeux de biche": "Khessegh titawin nem,ⵅⵙⵖ ⵜⵉⵟⴰⵡⵉⵏ ⵏⴻⵎ",
+    "ⵅⵙⵖ ⵜⵉⵟⴰⵡⵉⵏ ⵏⴻⵎ": "j'aimes tes yeux de biche,Khessegh titawin nem",
+    "Dchar ino": "mon village ⴷⵛⴰⵔ ⵉⵏⵓ",
+    "mon village": "Dchar ino ⴷⵛⴰⵔ ⵉⵏⵓ",
+    "ⴷⵛⴰⵔ ⵉⵏⵓ": "mon village Dchar ino",
+    "se mettre en colère": "ch3ch3 ⵛⴰⵄⵛⵄ",
+    "le fôret de chaîne": "rghabət rbeloth, ⵕⵖⴰⴱⴰⵝ ⵔⴱⴻⵍⵓⵝ",
+    "l'arbre de la fôret": "chəjjart d rghaba , ⵛⴰⵊⵊⴰⵔⵜ ⴷ ⵔⵖⴰⴱⴰ",
+    "le seisme de nador": "zzinzal d'anadur , ⵥⵉⵏⵣⴰⵍ ⴷ'ⴰⵏⴰⴷⵓⵔ",
+    "ⵛⴻⵎ ⴷ ⵍⵃⵓⴱ ⴰⵎⵣⵡⴰⵔ": "tu es mon premier amour, chem d l7oub amzewar",
+    "tu es mon premier amour": "chem d l7oub amzewar ,ⵛⴻⵎ ⴷ ⵍⵃⵓⴱ ⴰⵎⵣⵡⴰⵔ ",
+    "chem d l7oub amzewar": "tu es mon premier amour, ⵛⴻⵎ ⴷ ⵍⵃⵓⴱ ⴰⵎⵣⵡⴰⵔ",
+    "ⴰⵥⵔ": " Deghya, Agir rapidement , répondre rapidement",
+    "Azer": " Deghya, Agir rapidement , répondre rapidement , ⴰⵥⵔ",
+    "Deghya": " Deghya, Agir rapidement , répondre rapidement , ⴷⵖⵢⴰ",
+    "tfucht wakham": "3emarte dare,ⵜⴼⵓⵛⵜ ⵡⴰⵅⴰⵎ",
+    "ⵜⴼⵓⵛⵜ ⵡⴰⵅⴰⵎ": "3emarte dare,tfucht wakham",
+    "3emarte dare": "tfucht wakham,ⵜⴼⵓⵛⵜ ⵡⴰⵅⴰⵎ",
+    "tifayur": "plus belle que la lune,ⵜⵉⴼ ⴰⵢⵓⵔ",
+    "ⵜⵉⴼ ⴰⵢⵓⵔ": "plus belle que la lune,tifayur",
+    "plus belle que la lune": "tifayur,ⵜⵉⴼ ⴰⵢⵓⵔ",
+    "ⵜⴰⵣⵉⵔⵉ ⵜⴰⵎⵉⵔⵉ": "au claire de la lune,taziri tamiri",
+    "taziri tamiri": "au claire de la lune,ⵜⴰⵣⵉⵔⵉ ⵜⴰⵎⵉⵔⵉ",
+    "au claire de la lune":"ⵜⴰⵣⵉⵔⵉ ⵜⴰⵎⵉⵔⵉ,taziri tamiri",
+    "vendre": " watzenouzegh, ⵡⴰⵜⵣⵏⵏⵓⵣⵖ",
+    "ⵡⴰⵜⵣⵏⵏⵓⵣⵖ": " watzenouzegh, vendre",
+    "watzenouzegh": " ⵡⴰⵜⵣⵏⵏⵓⵣⵖ, vendre",
+    "ayourinou": " ma chérie , ⴰⵢⵓⵔⵉⵏⵓ",
+    "ma chérie": " ayourinou , ⴰⵢⵓⵔⵉⵏⵓ",
+    "ⴰⵢⵓⵔⵉⵏⵓ": "ayourinou , ma chérie",
+    "lla roser du matin": "nnda ⵏⵏⴷⴰ",
+    "le vent glacial": "Assemid ⴰⵚⵎⵉⴹ",
+    "l'etat semble mieux": "r7ar mzian , ⵕⵃⴰⵕ ⵎⴻⵣⵉⴰⵏ",
+    "la fummée s'évapore": "dekhan tittl3 , ⵕⵃⴰⵕ ⵜⵉⵟⵍⵄ",
+    "brûler le pain": "aghrum i7ār , ⴰⵖⵔⵓⵎ ⵉⵃⴰⵔ",
+    "allumer la bougie": "ch3er tacheme3 , ⵛⵄⵔ ⵝⴰⵛⵎⴰⵄⵝ",
+    "comprehension de langue": "refħemgh n tutalayt , ⵕⴼⵃⵎⵖ ⵏ ⵝⵓⵜⴰⵍⴰⵢⵜ",
+    "mariage et 7énnée": "mrach u r7enna , ⵎⵕⴰⵛ ⵓ ⵔⵃⵏⵏⴰ",
+    "papa et maman": "baba d yemma , ⴱⴰⴱⴰ ⴷ ⵢⴻⵎⵎⴰ",
+    "oncle maternelle et oncle": "khari d 3zizi , ⵅⴰⵕⵉ ⴷ ⵄⵣⵉⵣⵉ",
+    "tante maternelle et tante": "khatchi d 3enti , ⵅⴰⵞⵉ ⴷ ⵄⴰⵏⵜⵉ",
+    "madame et monsieur": "Ralla d sidi , ⵔⴰⵍⵍⴰ ⴷ ⵙⵉⴷⵉ",
+    "beau fils et belle fille": "ārbib u tārbibt , ⵔⴱⵉⴱ ⵓ ⵝⴰⵔⴱⵉⵝ",
+    "billets d'argents": "rmar wela temenyat , ⵕⵎⴰⵕ ⵓⵍⴰ ⵝⵎⴰⵏⵢⴰⵝ",
+    "comment ça va": "hmdlah, chokran u chek !",
+    "aide": "Je peux vous aider avec les questions générales.",
+    "au revoir": "besselama ⴱⵉⵙⵍⴰⵎⴰ",
+    "numéro": "numru ⵏⵉⵎⵔⵓ ",
+    "biens": "mziane ⵎⵣⵉⴰⵏⴻ ",
+    "plastique": "plastik ⵒⵍⴰⵙⵜⵉⴽ ",
+    "saucisse": "susiit ⵚⵓⵚⵉⵟ",
+    "carte postale": "kartpustal ⴽⴰⵔⵜⵒⵓⵙⵜⴰⵍ",
+    "lavabo": "llababu ⵍⴰⴱⴰⴱⵓ ",
+    "adresse": "landris ⵍⴰⵏⴷⵔⵉⵙ ",
+    "famille": "familya ⴼⴰⵎⵉⵍⵢⴰ ",
+    "pintar": "pintā ⵒⵉⵏⵜⴰ",
+    "lápiz": "lappis ⵍⴰⵒⵉⵙ ",
+    "irar ⵉⵔⴰⵔ": "jeux",
+    "ⵔⴰⵍⴰ ⴱⵓⵢⴰ": "ralla buya chant traditionnel Riffain",
+    "ralla buya": "ⵔⴰⵍⴰ ⴱⵓⵢⴰ chant traditionnel Riffain",
+    "pourquoi": "purki ⵒⵓⵔⴽⵉ",
+    "je cherche du travaille": "seqsigh kh takhdemith ⵙⵇⵙⵉⵖ ⵅ ⵜⴰⵅⴷⵎⵉⵝ",
+    "seqsigh kh takhdemith": "sje cherche du travaille ⵙⵇⵙⵉⵖ ⵅ ⵜⴰⵅⴷⵎⵉⵝ",
+    "ⵙⵇⵙⵉⵖ ⵅ ⵜⴰⵅⴷⵎⵉⵝ": " seqsigh kh takhdemith je cherche du travaille",
+    "coco": "kuku ⴽⵓⴽⵓ ",
+    "zéro": "ziru ⵣⵉⵔⵓ ",
+    "canguro": "kangaru ⴽⴰⵏⴳⴰⵔⵓ ",
+    "monde": "ddənya ⴷⴻⵏⵢⴰ ",
+    "combat": "ta3əjjacht ⵟⴰⵄⵊⵊⴰⵛⵟ",
+    "la mer": "rəbħā ⵔⴰⴱⵃⴰ",
+    "hwər": "hul ⵀⵓⵍ ",
+    "les vagues": "rmujjət ⵔⵎⵓⵊⵊⴻⵝ ",
+    "chāchā": "chər7chər7 ⵛⵔⵃⵛⵔⵃ",
+    "la fôret": "rghabət ⵕⵖⴰⴱⴰⵟ",
+    "arbre": "ssəjjāt ⵙⴰⵊⵊⴰⵟ",
+    "seisme": "zzinzal ⵥⵉⵏⵣⴰⵍ",
+    "t7t7ram": "d7ləm ⴷⵃⵍⴻⵎ",
+    "la roser": "nnda ⵏⵏⴸⴰ",
+    "le vent": "lhawa ⵍⵃⴰⵡⴰ",
+    "l'etat physique": "rħar ⵕⵀⴰⵕ",
+    "la fummée": "ddəkhkhan ⴷⴻⵅⴰⵏ",
+    "brûler": "7ārq ⵃⴰⵔⵇ",
+    "allumer": "chch3ər ⵛⴻⵛⵄⵔ",
+    "la comprehension": "rəfħəm ⵕⴻⴼⵃⵎ",
+    "être humain": "bnadəm ⴱⵏⴰⴸⵎ",
+    "mariage": "mrəch ⵎⵕⴰⵛ",
+    "papa": "baba ⴱⴰⴱⴰ",
+    "maman": "yəmma ⵢⴻⵎⵎⴰ",
+    "les parents": "lwalidin ⵍⵓⴰⵍⵉⴷⵉⵏ",
+    "grand pére": "jəddi ⵊⴰⴷⴷⵉ",
+    "grand mére": "ħənna ⵃⴰⵏⵏⴰ",
+    "oncle maternelle": "khari ⵅⴰⵕⵉ",
+    "oncle": "3zizi ⵄⵣⵉⵣⵉ",
+    "tante maternelle": "khači ⵅⴰⵞⵉ",
+    "tante": "3ənti ⵄⴰⵏⵜⵉ",
+    "madame": "Ralla ⵔⴰⵍⵍⴰ",
+    "beau fils": "ābib ⵔⴱⵉⴱ",
+    "belle fille": "tābift ⵟⴰⵔⴱⵉⵟ",
+    "predixe": "tajjach ⵜⴰⵊⵊⴰⵛ",
+    "predix": "ajjar ⴰⵊⵊⴰⵕ",
+    "les billets d'argents": "rmar ⵕⵎⴰⵕ",
+    "écurie": "rkuri ⵕⴽⵓⵔⵉ",
+    "le veaux": "a3əjmi ⴰⵄⴻⵊⵎⵉ",
+    "le mouton": "aħuri ⴰⵃⵓⵔⵉ",
+    "akidā": "kid7ar ⴽⵉⴷⵃⴰⵔ",
+    "les fêstiviter": "afā7an ⴰⴼⴰⵃⴰⵏ",
+    "les biens": "abākiw ⴰⴱⴰⴽⵉⵡ",
+    "faucon": "rbaz ⵕⴱⴰⵣ",
+    "rwəd7wad7": "wət7wat7 ⵡⴻⵜⵃⵡⴰⵜⵃ",
+    "péroquet": "babaghayyu ⴱⴰⴱⴰⵖⴰⵢⵓ",
+    "hibou": "muka ⵎⵓⴽⴰ",
+    "requin": "rqirch ⵔⵇⵉⵔⵛ",
+    "le foulard": "akhmār ⴰⵅⵎⴰⵔ",
+    "Moustiques": "nnamus ⵏⵏⴰⵎⵓⵙ",
+    "escargots": "buchchər ⴱⵓⵛⴻⵛⴰⵔ",
+    "le sond de la grenouillie": "tqāqra ⵟⵇⴰⵇⵔⴰ",
+    "chch3ā": "ch3ər7 ⵛⵄⴻⵔⵃ",
+    "éplucher les féves": "aqchua ⴰⵇⵛⵓⴰ",
+    "rayonnantes": "tanəwwāt ⵝⴰⵏⵓⵡⴰⵝ",
+    "la tête": "azəjjif ⴰⵥⵊⵉⴼ",
+    "clinné de l'oeil": "ghməz ⵖⵎⴰⵣ",
+    "tach3əft": "kə3ba ⴽⴰⵄⴱⴰ",
+    "la trace dans la main": "rimāt ⵕⵉⵎⴰⵔⵜ",
+    "les plumes": "arrich ⴰⵕⵉⵛ",
+    "l'accouchement": "lwəlda ⵍⵓⴰⵍⴷⴰ",
+    "éternuer": "3dəs ⵄⴸⵙ",
+    "s'énerver": "z3əf ⵣⵄⴼ",
+    "s'éveiller": "faq ⴼⴰⵇ",
+    "venir au monde": "khrəq ⵅⵕⴰⵇ",
+    "le droit de": "ghā7q ⵖⴰⵃⵇ",
+    "médecin": "adbib ⴰⴸⴱⵉⴱ",
+    "médicament": "ddwa ⴷⵡⴰ",
+    "poison": "ssəmm ⵙⴰⵎ",
+    "se mettre dans de mauvaises postures": "a7ər ⴰⵃⴰⵕ",
+    "reprend tes forces": "āyyə7 ⴰⵔⵢⵢⴻⵃ",
+    "ne pas avoir l'intension de faire quelque chose": "3gəz ⵄⴳⵣ",
+    "la Famine": "buhəyyuf ⴱⵓⵀⵢⵢⵓⴼ",
+    "le four": "afarran ⴰⴼⴰⵔⴰⵏ",
+    "la marmite": "māmita ⵎⴰⵔⵎⵉⵟⴰ",
+    "appareil a bouillir": "taghəllacht ⵜⴰⵖⴰⵍⴰⵛⵜ",
+    "le poelle": "rmaqra ⵕⵎⴰⵇⵕⴰ",
+    "une tasse": "afənjar ⴰⴼⵏⵊⴰⵔ",
+    "la coupe": "agharraf ⴰⵖⴰⵔⴰⴼ",
+    "copa": "tkuppat ⵝⴽⵓⵒⴰⵜ",
+    "le couteau": "rmus ⵔⵎⵓⵙ",
+    "fourchette": "furchita ⴼⵓⵔⵛⵉⵟⴰ",
+    "avant le petit déjeuner": "āyyəq ⵔⵢⵇ",
+    "la chaplure": "aqəchchā ⴰⵇⵓⵛⴻⵛⵔⴰ",
+    "mélanger": "ħarrəch ⵃⴰⵔⴰⵛ",
+    "slt": "salam ⵙⴰⵍⴰⵎ",
+    "merci": "chokran ⵛⵓⴽⵔⴰⵏ",
+    "la soupe": "taħriat ⵝⴰⵃⵔⵉⵔⴰⵝ",
+    "les piles": "apilā ⴰⵒⵉⵍⴰⵔ",
+    "la capuche": "aqbub ⴰⵇⴱⵓⴱ",
+    "jar pour puiser de l'eau": "aqbuch ⴰⵇⴱⵓⵛ ",
+    "le pot": "aqəddā ⴰⵇⴰⴷⴰⵃ ",
+    "la radio": "arradyu ⴰⵕⵕⴰⴷⵢⵓ",
+    "le chef de l'orcestre musical": "arrayəs ⴰⵔⵔⴰⵢⴻⵙ",
+    "gagne": "arrbə7 ⴰⵔⵔⴱⴰⵃ",
+    "l'araignée": "arrtira ⴰⵔⵜⵉⵔⴰ",
+    "l'ésprit": "arru7 ⴰⵕⵕⵓⵃ",
+    "le riz": "aruze ⴰⵔⵔⵓⵣ",
+    "le voleur": "achəffār ⴰⵛⴼⴰⵔ",
+    "lancer de la pierre pour frapper": "ārchəg ⴰⵔⵛⴻⴳ",
+    "le selhame": "asərham ⴰⵙⵔⵀⴰⵎ",
+    "le plafond": "asqif ⴰⵙⵇⵉⴼ",
+    "le thé": "atay ⴰⵜⴰⵢ",
+    "le commerce": "atijari ⴰⵜⵉⵊⴰⵔⵉ",
+    "nettoyer l'écurie": "atarras ⴰⵜⴰⵔⵔⴰⵙ",
+    "griffer": "akhbuch ⴰⵅⴱⵓⵛ",
+    "travailleur": "akhəddam ⴰⵅⴷⴰⵎ",
+    "plisser le yeux d'un mauvais regard": "akhənza ⴰⵅⴻⵏⵣⴰ",
+    "tailleur": "akhəyyad ⴰⵅⴻⵢⴰⴹ",
+    "bon prix": "ārkhu ⵔⴰⵅⵓ",
+    "une tente": "akham ⴰⵅⵅⴰⵎ",
+    "voisin": "ajjār ⴰⵊⵊⴰⵔ",
+    "militaire": "a3əskari ⴰⵄⴰⵙⴽⴰⵔⵉ",
+    "gardient de nuit": "a3əssas ⴰⵄⴻⵙⵙⴰⵙ",
+    "le bouc": "a3ətrus ⴰⵄⴻⵜⵔⵓⵙ",
+    "bicyclette": "bachklit ⴱⴰⵛⴽⵍⵉⵜ",
+    "les toilettes": "bitəlma ⴱⵉⵜⴻⵍⵎⴰ",
+    "Dehors": "barra ⴱⴰⵕⵕⴰ",
+    "hiers": "barrə7 ⴱⴰⵔⵔⴻⵃ",
+    "parler à hautes voix": "barra7 ⴱⴰⵔⵔⴰⵃ",
+    "commencer à": "bda ⴱⴷⴰ",
+    "changer de": "bəddər ⴱⴻⴷⴻⵔ",
+    "délicieux plat": "bna ⴱⵏⴰ",
+    "bullôt": "bulun ⴱⵓⵍⵓⵏ",
+    "serpent": "busəkka ⴱⵓⵙⴻⴽⴰ",
+    "babouche": "buchər ⴱⵓⵛⵛⴻⵔ",
+    "la sandale": "janklat ⵊⴰⵏⴽⵍⴰⵟ",
+    "gratiner avec de l'huile": "ddhən ⴷⵀⴰⵏ",
+    "le maiis": "ddra ⴷⴻⴷⵔⴰ",
+    "chercher des solutions": "dəbbār ⴷⴻⴱⴰⵔ",
+    "faire vite": "dəɣya ⴷⴻⵖⵢⴰ",
+    "érreur": "falta   ⴼⴰⵍⵟⴰ",
+    "parler lentement pour une meilleur comprehension": "fāz ⴼⴰⵔⵣ",
+    "rechercher": "fəttəch ⴼⴰⵜⴻⵛ",
+    "comprends": "fhəm ⴼⵀⴻⵎ",
+    "faire": "f7ər ⴼⵃⴻⵔ",
+    "petit bâteau": "fluka ⴼⵍⵓⴽⴰ",
+    "frein": "frina ⴼⵔⵉⵏⴰ",
+    "couper la viande en morceaux": "fsər ⴼⵙⴻⵔ",
+    "pommade": "fumada ⴼⵓⵎⴰⴷⴰ",
+    "guerre": "garra ⴳⴰⵔⵔⴰ",
+    "cigarette": "garru ⴳⴰⵔⵔⵓ",
+    "le pince": "jjəqqad ⵊⴰⵇⴰⴹ",
+    "le tamie": "ɣārbər ⵖⴰⵔⴱⴰⵔ",
+    "trître": "ɣdār ⵖⴷⴰⵔ",
+    "plonger": "ɣdəs ⵖⴹⴰⵙ",
+    "interdire": "7arrəm ⵃⵔⴻⵎ",
+    "par méprise, mes excuses": "7acha ⵃⴰⵛⴰ",
+    "mr pélerin": "7aj ⵃⴰⵊ",
+    "se faire coifer les cheveux avec un ciseaux": "7dəq ⵃⴷⴻⵇ",
+    "modernisation": "7əddət ⵃⴰⴷⴻⵜ",
+    "pied nu": "7fa ⵃⴼⴰ",
+    "prénom": "isəm ⵉⵙⵎ",
+    "perdre sa couleur d'origine peau": "kachəf ⴽⵛⴼ",
+    "remplir le verre de thé": "kəbb ⴽⴻⴱ",
+    "fumer le kif": "kəyyəf ⴽⵉⵢⴻⴼ",
+    "plus": "ktār ⴽⵜⴰⵔ",
+    "couleur": "kulur ⴽⵓⵍⵓⵔ",
+    "commencer": "kumasa ⴽⵓⵎⴰⵙⴰ",
+    "lampe": "lamba ⵍⴰⵎⴱⴰ",
+    "la péle": "lbala ⵍⴱⴰⵍⴰ",
+    "educateur en msside": "lfaqi ⵍⴼⴰⵇⵉ",
+    "le bus": "lkar ⵍⴽⴰⵕ",
+    "la Déstinée": "lkitabn ⵍⴽⵉⵜⴰⴱ",
+    "l'orange": "llətchin ⵍⴰⵞⵞⵉⵏ",
+    "le train": "machina ⵎⴰⵛⵉⵏⴰ",
+    "combien ça côute? ": "məch7ar ⵎⴰⵛⵃⴰⵔ",
+    "valise": "multta ⵎⵓⵍⵟⴰ",
+    "semaine": "simana ⵙⵉⵎⴰⵏⴰ",
+    "hospital": "spitār ⵙⴱⵉⵜⴰⵔ",
+    "payer le loyer": "chra ⵛⵔⴰ",
+    "peu à peu": "chway chway ⵛⵡⴰⵢ ⵛⵡⴰⵢ",
+    "l'argent en piéces": "ttmənyat ⵜⵎⵏⵢⴰⵜ",
+    "chaussettes": "ttqachia ⵜⴰⵇⵛⵉⵔⴰ",
+    "autobus": "ttubis ⵟⵓⴱⵉⵙ",
+    "la voiture": "ttumubin ⵟⵓⵎⵓⴱⵉⵏ",
+    "amessage,léttre": "tabrat ⵜⴰⴱⵔⴰⵜ",
+    "le sel": "taməjja7t ⵜⴰⵎⵊⴰⵃⵜ",
+    "magazin": "t7anətt ⵜⵃⴰⵏⵓⵜ",
+    "oui": "wah ⵡⴰⵀ",
+    "rien": "walu ⵡⴰⵍⵓ",
+    "voir": "xzār ⵅⵥⴰⵔ",
+    "travaille collaboratif bⵒnevolte": "twiza ⵜⵡⵉⵣⴰ",
+    "de la chance": "azher ⴰⵣⵀⵔ",
+    "suffit": "safi ⵚⴰⴼⵉ",
+    "regarder la télévision": "ntferej zi telefaza ⵏⵜⴼⵔⵊ ⵣⵉ ⵜⵉⵍⴼⴰⵣⴰ",
+    "ohh mon dieu": "rabinou ⵔⴰⴱⵉⵏⵓ",
+    "je lis le coran": "tigha lfate7a ⵜⵉⵖⵔⴰ ⵍⴼⴰⵜⵉⵃⴰ",
+    "j'écris un lettre": "tirra thabrat ⵜⵉⵔⴰ ⵜⴰⴱⵔⴰⵜ",
+    "janvier": "yenayer ⵢⴰⵏⵢⵉⵔ",
+    "février": "furar ⴼⵓⵔⴰⵔ",
+    "mars": "maris ⵎⴰⵔⵉⵙ",
+    "je fais cuire le couscous à la vapeur": "tanefewer sksu ⵜⴰⵏⴼⵓⴰⵔ ⵙⴽⵙⵓ",
+    "fermer la porte": "quen tawart ⵇⴰⵏ ⵜⴰⵡⴰⵔⵜ",
+    "fermer la bouche": "qana quemume ⵇⴰⵏⴰ ⵇⴰⵎⵓⵎ",
+    "tais toi": "sqar ⵙⵇⴰⵔ",
+    "le sucre": "sekkar ⵙⴰⴽⴽⴰⵔ",
+    "tamazight": "langues des nobles ⵜⴰⵎⴰⵣⵉⵖⵜ",
+    "amazigh": "l'homme libre ⵍⵃⵓⵔ",
+    "izran": "music Riffaine ⵉⵣⵔⴰⵏ ⵏⴰⵔⵉⴼ",
+    "jeûne": "zum ⵥⵓⵎ",
+    "mere7ba ⵎⴰⵔⵃⴱⴰ": "bonjour",
+    "hmdlah, chokran u chek": "comment ça va",
+    "besselama ⴱⵉⵙⵍⴰⵎⴰ": "au revoir",
+    "numru ⵏⵉⵎⵔⵓ": "numéro",
+    "plastik ⵒⵍⴰⵙⵜⵉⴽ": "plastique",
+    "susiit ⵚⵓⵚⵉⵟ": "saucisse",
+    "kartpustal ⴽⴰⵔⵜⵒⵓⵙⵜⴰⵍ": "carte postale",
+    "llababu ⵍⴰⴱⴰⴱⵓ": "lavabo",
+    "landris ⵍⴰⵏⴷⵔⵉⵙ": "adresse",
+    "familya ⴼⴰⵎⵉⵍⵢⴰ": "famille",
+    "pintā ⵒⵉⵏⵜⴰ": "pintar",
+    "lappis ⵍⴰⵒⵉⵙ": "lápiz",
+    "purki ⵒⵓⵔⴽⵉ": "pourquoi",
+    "kuku ⴽⵓⴽⵓ": "coco",
+    "ziru ⵣⵉⵔⵓ": "zéro",
+    "kangaru ⴽⴰⵏⴳⴰⵔⵓ": "canguro",
+    "ddənya ⴷⴻⵏⵢⴰ": "monde",
+    "ta3əjjacht ⵟⴰⵄⵊⵊⴰⵛⵟ": "combat",
+    "rəbħā ⵔⴰⴱⵃⴰ": "la mer",
+    "hul ⵀⵓⵍ": "hwər",
+    "rmujjət ⵔⵎⵓⵊⵊⴻⵝ": "les vagues",
+    "chər7chər7 ⵛⵔⵃⵛⵔⵃ": "chāchā",
+    "rghabət ⵕⵖⴰⴱⴰⵟ": "la fôret",
+    "ssəjjāt ⵙⴰⵊⵊⴰⵟ": "arbre",
+    "zzinzal ⵥⵉⵏⵣⴰⵍ": "seisme",
+    "d7ləm ⴷⵃⵍⴻⵎ": "t7t7ram",
+    "nnda ⵏⵏⴸⴰ": "la roser",
+    "lhawa ⵍⵃⴰⵡⴰ": "le vent",
+    "rħar ⵕⵀⴰⵕ": "l'etat physique",
+    "ddəkhkhan ⴷⴻⵅⴰⵏ": "la fummée",
+    "7ārq ⵃⴰⵔⵇ": "brûler",
+    "chch3ər ⵛⴻⵛⵄⵔ": "allumer",
+    "rəfħəm ⵕⴻⴼⵃⵎ": "la comprehension",
+    "bnadəm ⴱⵏⴰⴸⵎ": "être humain",
+    "mrəch ⵎⵕⴰⵛ": "mariage",
+    "baba ⴱⴰⴱⴰ": "papa",
+    "yəmma ⵢⴻⵎⵎⴰ": "maman",
+    "lwalidin ⵍⵓⴰⵍⵉⴷⵉⵏ": "les parents",
+    "jəddi ⵊⴰⴷⴷⵉ": "grand pére",
+    "ħənna ⵃⴰⵏⵏⴰ": "grand mére",
+    "khari ⵅⴰⵕⵉ": "oncle maternelle",
+    "3zizi ⵄⵣⵉⵣⵉ": "oncle",
+    "khači ⵅⴰⵞⵉ": "tante maternelle",
+    "3ənti ⵄⴰⵏⵜⵉ": "tante",
+    "Ralla ⵔⴰⵍⵍⴰ": "madame",
+    "ābib ⵔⴱⵉⴱ": "beau fils",
+    "tābift ⵟⴰⵔⴱⵉⵟ": "belle fille",
+    "tajjach ⵜⴰⵊⵊⴰⵛ": "predixe",
+    "ajjar ⴰⵊⵊⴰⵕ": "predix",
+    "rmar ⵕⵎⴰⵕ": "les billets d'argents",
+    "rkuri ⵕⴽⵓⵔⵉ": "écurie",
+    "a3əjmi ⴰⵄⴻⵊⵎⵉ": "le veaux",
+    "aħuri ⴰⵃⵓⵔⵉ": "le mouton",
+    "kid7ar ⴽⵉⴷⵃⴰⵔ": "akidā",
+    "afā7an ⴰⴼⴰⵃⴰⵏ": "les fêstiviter",
+    "abākiw ⴰⴱⴰⴽⵉⵡ": "les biens",
+    "rbaz ⵕⴱⴰⵣ": "faucon",
+    "wət7wat7 ⵡⴻⵜⵃⵡⴰⵜⵃ": "rwəd7wad7",
+    "babaghayyu ⴱⴰⴱⴰⵖⴰⵢⵓ": "péroquet",
+    "muka ⵎⵓⴽⴰ": "hibou",
+    "rqirch ⵔⵇⵉⵔⵛ": "requin",
+    "akhmār ⴰⵅⵎⴰⵔ": "le foulard",
+    "nnamus ⵏⵏⴰⵎⵓⵙ": "Moustiques",
+    "buchchər ⴱⵓⵛⴻⵛⴰⵔ": "escargots",
+    "tqāqra ⵟⵇⴰⵇⵔⴰ": "le son de la grenouillie",
+    "ch3ər7 ⵛⵄⴻⵔⵃ": "chch3ā",
+    "aqchua ⴰⵇⵛⵓⴰ": "éplucher les féves",
+    "tanəwwāt ⵝⴰⵏⵓⵡⴰⵝ": "rayonnantes",
+    "azəjjif ⴰⵥⵊⵉⴼ": "la tête",
+    "ghməz ⵖⵎⴰⵣ": "clinné de l'oeil",
+    "kə3ba ⴽⴰⵄⴱⴰ": "tach3əft",
+    "rimāt ⵕⵉⵎⴰⵔⵜ": "la trace dans la main",
+    "arrich ⴰⵕⵉⵛ": "les plumes",
+    "lwəlda ⵍⵓⴰⵍⴷⴰ": "l'accouchement",
+    "3dəs ⵄⴸⵙ": "éternuer",
+    "z3əf ⵣⵄⴼ": "s'énerver",
+    "faq ⴼⴰⵇ": "s'éveiller",
+    "khrəq ⵅⵕⴰⵇ": "venir au monde",
+    "ghā7q ⵖⴰⵃⵇ": "le droit de",
+    "adbib ⴰⴸⴱⵉⴱ": "médecin",
+    "ddwa ⴷⵡⴰ": "médicament",
+    "ssəmm ⵙⴰⵎ": "poison",
+    "a7ər ⴰⵃⴰⵕ": "se mettre dans de mauvaises postures",
+    "āyyə7 ⴰⵔⵢⵢⴻⵃ": "reprend tes forces",
+    "3gəz ⵄⴳⵣ": "ne pas avoir l'intension de faire quelque chose",
+    "buhəyyuf ⴱⵓⵀⵢⵢⵓⴼ": "la Famine",
+    "afarran ⴰⴼⴰⵔⴰⵏ": "le four",
+    "māmita ⵎⴰⵔⵎⵉⵟⴰ": "la marmite",
+    "taghəllacht ⵜⴰⵖⴰⵍⴰⵛⵜ": "appareil a bouillir",
+    "rmaqra ⵕⵎⴰⵇⵕⴰ": "le poelle",
+    "afənjar ⴰⴼⵏⵊⴰⵔ": "une tasse",
+    "agharraf ⴰⵖⴰⵔⴰⴼ": "la coupe",
+    "tkuppat ⵝⴽⵓⵒⴰⵜ": "copa",
+    "rmus ⵔⵎⵓⵙ": "le couteau",
+    "furchita ⴼⵓⵔⵛⵉⵟⴰ": "fourchette",
+    "āyyəq ⵔⵢⵇ": "avant le petit déjeuner",
+    "aqəchchā ⴰⵇⵓⵛⴻⵛⵔⴰ": "la chaplure",
+    "ħarrəch ⵃⴰⵔⴰⵛ": "mélanger",
+    "salam ⵙⴰⵍⴰⵎ": "slt",
+    "chokran ⵛⵓⴽⵔⴰⵏ": "merci",
+    "taħriat ⵝⴰⵃⵔⵉⵔⴰⵝ": "la soupe",
+    "apilā ⴰⵒⵉⵍⴰⵔ": "les piles",
+    "aqbub ⴰⵇⴱⵓⴱ": "la capuche",
+    "aqbuch ⴰⵇⴱⵓⵛ": "jar pour puiser de l'eau",
+    "aqəddā ⴰⵇⴰⴷⴰⵃ": "le pot",
+    "arradyu ⴰⵕⵕⴰⴷⵢⵓ": "la radio",
+    "arrayəs ⴰⵔⵔⴰⵢⴻⵙ": "le chef de l'orcestre musical",
+    "arrbə7 ⴰⵔⵔⴱⴰⵃ": "gagne",
+    "arrtira ⴰⵔⵜⵉⵔⴰ": "l'araignée",
+    "arru7 ⴰⵕⵕⵓⵃ": "l'ésprit",
+    "aruze ⴰⵔⵔⵓⵣ": "le riz",
+    "achəffār ⴰⵛⴼⴰⵔ": "le voleur",
+    "ārchəg ⴰⵔⵛⴻⴳ": "lancer de la pierre pour frapper",
+    "asərham ⴰⵙⵔⵀⴰⵎ": "le selhame",
+    "asqif ⴰⵙⵇⵉⴼ": "le plafond",
+    "atay ⴰⵜⴰⵢ": "le thé",
+    "atijari ⴰⵜⵉⵊⴰⵔⵉ": "le commerce",
+    "atarras ⴰⵜⴰⵔⵔⴰⵙ": "nettoyer l'écurie",
+    "akhbuch ⴰⵅⴱⵓⵛ": "griffer",
+    "akhəddam ⴰⵅⴷⴰⵎ": "travailleur",
+    "akhənza ⴰⵅⴻⵏⵣⴰ": "plisser le yeux d'un mauvais regard",
+    "akhəyyad ⴰⵅⴻⵢⴰⴹ": "tailleur",
+    "ārkhu ⵔⴰⵅⵓ": "bon prix",
+    "akham ⴰⵅⵅⴰⵎ": "une tente",
+    "ajjār ⴰⵊⵊⴰⵔ": "voisin",
+    "a3əskari ⴰⵄⴰⵙⴽⴰⵔⵉ": "militaire",
+    "a3əssas ⴰⵄⴻⵙⵙⴰⵙ": "gardient de nuit",
+    "a3ətrus ⴰⵄⴻⵜⵔⵓⵙ": "le bouc",
+    "bachklit ⴱⴰⵛⴽⵍⵉⵜ": "bicyclette",
+    "bitəlma ⴱⵉⵜⴻⵍⵎⴰ": "les toilettes",
+    "barra ⴱⴰⵕⵕⴰ": "Dehors",
+    "barrə7 ⴱⴰⵔⵔⴻⵃ": "hiers",
+    "barra7 ⴱⴰⵔⵔⴰⵃ": "parler à hautes voix",
+    "bda ⴱⴷⴰ": "commencer à",
+    "bəddər ⴱⴻⴷⴻⵔ": "changer de",
+    "bna ⴱⵏⴰ": "délicieux plat",
+    "bulun ⴱⵓⵍⵓⵏ": "bullôt",
+    "busəkka ⴱⵓⵙⴻⴽⴰ": "serpent",
+    "buchər ⴱⵓⵛⵛⴻⵔ": "babouche",
+    "janklat ⵊⴰⵏⴽⵍⴰⵟ": "la sandale",
+    "ddhən ⴷⵀⴰⵏ": "gratiner avec de l'huile",
+    "ddra ⴷⴻⴷⵔⴰ": "le maiis",
+    "dəbbār ⴷⴻⴱⴰⵔ": "chercher des solutions",
+    "dəɣya ⴷⴻⵖⵢⴰ": "faire vite",
+    "falta ⴼⴰⵍⵟⴰ": "érreur",
+    "fāz ⴼⴰⵔⵣ": "parler lentement pour une meilleur comprehension",
+    "fəttəch ⴼⴰⵜⴻⵛ": "rechercher",
+    "fhəm ⴼⵀⴻⵎ": "comprends",
+    "f7ər ⴼⵃⴻⵔ": "faire",
+    "fluka ⴼⵍⵓⴽⴰ": "petit bâteau",
+    "frina ⴼⵔⵉⵏⴰ": "frein",
+    "fsər ⴼⵙⴻⵔ": "couper la viande en morceaux",
+    "fumada ⴼⵓⵎⴰⴷⴰ": "pommade",
+    "garra ⴳⴰⵔⵔⴰ": "guerre",
+    "garru ⴳⴰⵔⵔⵓ": "cigarette",
+    "jjəqqad ⵊⴰⵇⴰⴹ": "le pince",
+    "ɣārbər ⵖⴰⵔⴱⴰⵔ": "le tamie",
+    "ɣdār ⵖⴷⴰⵔ": "traître",
+    "ɣdəs ⵖⴹⴰⵙ": "plonger",
+    "7arrəm ⵃⵔⴻⵎ": "interdire",
+    "7acha ⵃⴰⵛⴰ": "par méprise, mes excuses",
+    "7aj ⵃⴰⵊ": "mr pélerin",
+    "7dəq ⵃⴷⴻⵇ": "se faire coifer les cheveux avec un ciseaux",
+    "7əddət ⵃⴰⴷⴻⵜ": "modernisation",
+    "7fa ⵃⴼⴰ": "pied nu",
+    "isəm ⵉⵙⵎ": "prénom",
+    "kachəf ⴽⵛⴼ": "perdre sa couleur d'origine peau",
+    "kəbb ⴽⴻⴱ": "remplir le verre de thé",
+    "kəyyəf ⴽⵉⵢⴻⴼ": "fumer le kif",
+    "ktār ⴽⵜⴰⵔ": "plus",
+    "kulur ⴽⵓⵍⵓⵔ": "couleur",
+    "kumasa ⴽⵓⵎⴰⵙⴰ": "commencer",
+    "lamba ⵍⴰⵎⴱⴰ": "lampe",
+    "lbala ⵍⴱⴰⵍⴰ": "la péle",
+    "lfaqi ⵍⴼⴰⵇⵉ": "éducateur en msside",
+    "lkar ⵍⴽⴰⵕ": "le bus",
+    "lkitabn ⵍⴽⵉⵜⴰⴱ": "la Déstinée",
+    "llətchin ⵍⴰⵞⵞⵉⵏ": "l'orange",
+    "machina ⵎⴰⵛⵉⵏⴰ": "le train",
+    "məch7ar ⵎⴰⵛⵃⴰⵔ": "combien ça côute?",
+    "multta ⵎⵓⵍⵟⴰ": "valise",
+    "simana ⵙⵉⵎⴰⵏⴰ": "semaine",
+    "spitār ⵙⴱⵉⵜⴰⵔ": "hospital",
+    "chra ⵛⵔⴰ": "payer le loyer",
+    "chway chway ⵛⵡⴰⵢ ⵛⵡⴰⵢ": "peu à peu",
+    "ttmənyat ⵜⵎⵏⵢⴰⵜ": "l'argent en piéces",
+    "ttqachia ⵜⴰⵇⵛⵉⵔⴰ": "chaussettes",
+    "ttubis ⵟⵓⴱⵉⵙ": "autobus",
+    "ttumubin ⵟⵓⵎⵓⴱⵉⵏ": "la voiture",
+    "tabrat ⵜⴰⴱⵔⴰⵜ": "message,léttre",
+    "t7anətt ⵜⵃⴰⵏⵓⵜ": "magazin",
+    "wah ⵡⴰⵀ": "oui",
+    "zum ⵥⵓⵎ": "jeûne",
+    "walu ⵡⴰⵍⵓ": "rien",
+    "xzār ⵅⵥⴰⵔ": "voir",
+    "twiza ⵜⵡⵉⵣⴰ": "travaille collaboratif bénevolte",
+    "azher ⴰⵣⵀⵔ": "de la chance",
+    "safi ⵚⴰⴼⵉ": "suffit",
+    "ntferej zi telefaza ⵏⵜⴼⵔⵊ ⵣⵉ ⵜⵉⵍⴼⴰⵣⴰ": "regarder la télévision",
+    "rabinou ⵔⴰⴱⵉⵏⵓ": "ohh mon dieu",
+    "tigha lfate7a ⵜⵉⵖⵔⴰ ⵍⴼⴰⵜⵉⵃⴰ": "je lis le coran",
+    "tirra thabrat ⵜⵉⵔⴰ ⵜⴰⴱⵔⴰⵜ": "j'écris un lettre",
+    "yenayer ⵢⴰⵏⵢⵉⵔ": "janvier",
+    "furar ⴼⵓⵔⴰⵔ": "février",
+    "maris ⵎⴰⵔⵉⵙ": "mars",
+    "tanefewer sksu ⵜⴰⵏⴼⵓⴰⵔ ⵙⴽⵙⵓ": "je fais cuire le couscous à la vapeur",
+    "quen tawart ⵇⴰⵏ ⵜⴰⵡⴰⵔⵜ": "fermer la porte",
+    "qana quemume ⵇⴰⵏⴰ ⵇⴰⵎⵓⵎ": "fermer la bouche",
+    "sqar ⵙⵇⴰⵔ": "tais toi",
+    "sekkar ⵙⴰⴽⴽⴰⵔ": "le sucre",
+    "ⵜⴰⵎⴰⵣⵉⵖⵜ": "langues des nobles tamazight",
+    "ini nech dariffi": "dit je suis un Riffain ⵉⵏⵉ ⵏⴻⵛ ⴷⴰⵔⵉⴼⵉ",
+    "dit je suis un Riffain ⵉⵏⵉ ⵏⴻⵛ ⴷⴰⵔⵉⴼⵉ": "ini nech dariffi",
+    "ini nech tarifacht": "dite je suis un Riffaine ⵉⵏⵉ ⵏⴻⵛ ⵜⴰⵔⵉⴼⴰⵛⵜ",
+    "dite je suis un Riffaine ⵉⵏⵉ ⵏⴻⵛ ⵜⴰⵔⵉⴼⴰⵛⵜ": "ini nech tarifacht",
+    "ⵏⴻⵛ ⴹⵓⵣⴰⵖ": "j'ai faim nech Dozegh",
+    "J'ai faim": "nech Dozegh ⵏⴻⵛ ⴹⵓⵣⴰⵖ",
+    "déjeuner": "refdar ⵔⴼⴷⴰⵔ",
+    "jeux": "irar ⵉⵔⴰⵔ",
+    "ourar": "mariage ⵓⵔⴰⵔ",
+    "mariage ⵓⵔⴰⵔ": "ourar",
+    "inou": "le miens ⵉⵏⵓ",
+    "ⵉⵏⵓ": "inou le miens",
+    "le miens": "inou ⵉⵏⵓ",
+    "manger": "chigh ⵛⵉⵖ",
+    "ⵛⵉⵖ": "chigh manger",
+    "chigh": "ⵛⵉⵖ manger",
+    "le pain": "aghrum ⴰⵖⵔⵓⵎ",
+    "aghrum": "le pain ⴰⵖⵔⵓⵎ",
+    "ⴰⵖⵔⵓⵎ": "aghrum le pain",
+    "danser": "cheda7 ⵛⴹⴰⵃ",
+    "ⵛⴹⴰⵃ": "cheda7 danser",
+    "cheda7": "ⵛⴹⴰⵃ danser",
+    "s'il vous plaît": "3afak ⵄⴰⴼⴰⴽ",
+    "3afak": "s'il vous plaît ⵄⴰⴼⴰⴽ",
+    "ⵄⴰⴼⴰⴽ": "3afak s'il vous plaît",
+    "excusez-moi": "sm7ayi ⵙⴰⵎⵃⴰⵢⵉ",
+    "sm7ayi": "excusez-moi ⵙⴰⵎⵃⴰⵢⵉ",
+    "ⵙⴰⵎⵃⴰⵢⵉ": "sm7ayi excusez-moi",
+    "ou": "manis ⵎⴰⵏⵉⵙ",
+    "manis": "ou ⵎⴰⵏⵉⵙ",
+    "ⵎⴰⵏⵉⵙ": "manis ou",
+    "quand": "malmy ⵎⴰⵍⵎⵢ",
+    "malmy": "quand ⵎⴰⵍⵎⵢ",
+    "ⵎⴰⵍⵎⵢ": "malmy quand",
+    "comment": "mamech ⵎⴰⵎⴻⵛ",
+    "mamech": "comment ⵎⴰⵎⴻⵛ",
+    "ⵎⴰⵎⴻⵛ": "mamech comment",
+    "mayemi": "ⵎⴰⵢⴰⵎⵉ pourquoi",
+    "ⵎⴰⵢⴰⵎⵉ": "mayemi pourquoi",
+    "salut ça va": "labasse ⵍⴰⴱⴰⵙ",
+    "labasse": "salut ça va ⵍⴰⴱⴰⵙ",
+    "ⵍⴰⴱⴰⵙ": "labasse salut ça va",
+    "quoi de neuf": "chenou jdid ⵛⵏⵓ ⵊⴷⵉⴷ",
+    "chenou jdid": "ⵛⵏⵓ ⵊⴷⵉⴷ quoi de neuf",
+    "ⵛⵏⵓ ⵊⴷⵉⴷ": "chenou jdid quoi de neuf",
+    "avec": "ak ⴰⴽ",
+    "ak": "ⴰⴽ avec",
+    "ⴰⴽ": "ak avec",
+    "avec plaisir": "ssa7it ⵚⴰⵃⵉⵜ",
+    "ssa7it": "ⵚⴰⵃⵉⵜ avec plaisir",
+    "ⵚⴰⵃⵉⵜ": "ssa7it avec plaisir",
+    "ça marche": "mzyane ⵎⵣⵢⴰⵏ",
+    "mzyane": "ⵎⵣⵢⴰⵏ ça marche",
+    "ⵎⵣⵢⴰⵏ": "mzyane ça marche",
+    "je t'aime": "tekhsegh chem ⵜⵅⵙⵖ ⵛⴻⵎ",
+    "tekhsegh chem": "ⵜⵅⵙⵖ ⵛⴻⵎ je t'aime",
+    "ⵜⵅⵙⵖ ⵛⴻⵎ": "tekhsegh chem je t'aime",
+    "yugui": "il ne veut pas ⵢⵓⴳⵉ",
+    "ⵢⵓⴳⵉ": "yugui il ne veut pas",
+    "il ne veut pas": "yugui ⵢⵓⴳⵉ",
+    "tugui": "elle ne veut pas ⵜⵓⴳⵉ",
+    "ⵜⵓⴳⵉ": "tugui elle ne veut pas",
+    "elle ne veut pas": "tugui ⵜⵓⴳⵉ",
+    "ⵉⵣⵔⴰⵏ": "izran music Riffaine",
+    "music Rif": "izran NaRif ⵉⵣⵔⴰⵏ ⵏⴰⵔⵉⴼ",
+    "ⵎⵕⴰⵛ": "mrəch mariage",
+    "mrach": "mariage ⵎⵕⴰⵛ",
+    "la vie": "tuadatha ⵜⵓⴷⴰⵜⴰ",
+    "tuadatha": "ⵜⵓⴷⴰⵜⴰ la vie",
+    "ⵜⵓⴷⴰⵜⴰ": "tuadatha la vie",
+    "atay": "le thé ⴰⵜⴰⵢ",
+    "ⴰⵜⴰⵢ": "atay le thé",
+    "ⵎⴰⵔⵃⴱⴰ": "mere7ba bienvenue",
+    "bienvenue": "mere7ba ⵎⴰⵔⵃⴱⴰ",
+    "mere7ba": "bienvenue ⵎⴰⵔⵃⴱⴰ",
+    "la sauce": "tamraqt ⵜⴰⵎⵔⴰⵇⵜ",
+    "tamraqt": "la sauce ⵜⴰⵎⵔⴰⵇⵜ",
+ "uma":"mon frère ⵓⵎⴰ",
+"mon frère":"uma ⵓⵎⴰ",
+"ⵓⵎⴰ": "mon frère uma",
+"utchma": "ma sœur ⵓⵞⵎⴰ",
+"ma sœur": "utchma ⵓⵞⵎⴰ",
+"ⵓⵞⵎⴰ": "ma sœur utchma",
+"ayetma": "mes frères ⴰⵢⵜⵎⴰ",
+"mes frères": "ayetma ⴰⵢⵜⵎⴰ",
+"ⴰⵢⵜⵎⴰ": "mes frères ayetma",
+"issma": "mes sœurs ⵉⵙⵙⵎⴰ",
+"mes sœurs": "issma ⵉⵙⵙⵎⴰ",
+"ⵉⵙⵙⵎⴰ":"mes sœurs issma",
+"lait": "aghi ⴰⵖⵉ",
+"aghi": "lait ⴰⵖⵉ",
+"ⴰⵖⵉ": "aghi lait",
+"aman": "eau ⴰⵎⴰⵏ",
+"eau": "aman ⴰⵎⴰⵏ",
+"ⴰⵎⴰⵏ": "eau aman",
+"rbachua": "figue ⵔⴱⴰⵛⵓⴰ",
+"figue": "rbachua ⵔⴱⴰⵛⵓⴰ",
+"ⵔⴱⴰⵛⵓⴰ": "figue rbachua",
+"tibesfin": "oignon ⵜⵉⴱⵙⴼⵉⵏ",
+"oignon": "tibesfin ⵜⵉⴱⵙⴼⵉⵏ",
+"ⵜⵉⴱⵙⴼⵉⵏ": "oignon tibesfin",
+"ddellich": "pastèque ⴷⵍⵍⵉⵛ",
+"pastèque": "ddellich ⴷⵍⵍⵉⵛ",
+"ⴷⵍⵍⵉⵛ": "pastèque ddellich",
+"çabun": "savon ⵚⴰⴱⵓⵏ",
+"savon": "çabun ⵚⴰⴱⵓⵏ",
+"ⵚⴰⴱⵓⵏ": "savon çabun",
+"tateffahit": "pomme ⵜⴰⵜⴻⴼⴰⵃⵉⵜ",
+"pomme": "tateffahit ⵜⴰⵜⴻⴼⴰⵃⵉⵜ",
+"ⵜⴰⵜⴻⴼⴰⵃⵉⵜ": "tateffahit pomme", 
+"afunas": "bœuf ⴰⴼⵓⵏⴰⵙ",
+"bœuf": "afunas ⴰⴼⵓⵏⴰⵙ",
+"ⴰⴼⵓⵏⴰⵙ": "bœuf afunas", 
+"tafunast": "vache ⵜⴰⴼⵓⵏⴰⵙⵜ",
+"ⵜⴰⴼⵓⵏⴰⵙⵜ": "vache tafunast",
+"ⵜⴰⵎⵔⴰⵇⵜ": "tamraqt la sauce"
+    };
+
+    // Configuration TTS Amazigh
+    const ttsConfig = {
+      apiUrl: "https://huggingface.co/spaces/ayymen/Amazigh-tts/api/predict",
+      currentVoice: localStorage.getItem('ttsVoice') || 'tarifit'
+    };
+
+    // Variables globales
+    let ttsEnabled = true;
+    let voices = [];
+    let currentUtterance = null;
+    let autoSpeak = localStorage.getItem('autoTTS') === 'true';
+    let currentAudio = null;
+    let chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
+
+    // Initialisation au chargement
+    window.onload = function() {
+      initTheme();
+      initBackground();
+      initViewsCounter();
+      initChatHistory();
+      initTTS();
+      initEventListeners();
+    };
+
+    // Gestion du thème
+    function initTheme() {
+      const themeToggle = document.getElementById('themeToggle');
+      const prefersDarkScheme = window.matchMedia('(prefers-color-scheme: dark)');
+
+      function applyDarkMode(isDark) {
+        document.body.classList.toggle('dark-mode', isDark);
+        themeToggle.textContent = isDark ? '☀️' : '🌙';
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      }
+
+      function checkTheme() {
+        const savedTheme = localStorage.getItem('theme');
+        const systemDark = prefersDarkScheme.matches;
+        applyDarkMode(savedTheme ? savedTheme === 'dark' : systemDark);
+      }
+
+      themeToggle.addEventListener('click', () => applyDarkMode(!document.body.classList.contains('dark-mode')));
+      prefersDarkScheme.addEventListener('change', checkTheme);
+      checkTheme();
+    }
+
+    // Image de fond aléatoire
+    function initBackground() {
+      const images = ["2.jpg"];
+      const randomBg = images[Math.floor(Math.random() * images.length)];
+      document.body.style.backgroundImage = `url(${randomBg})`;
+    }
+
+    // Compteur de vues
+    function initViewsCounter() {
+      if (localStorage.getItem('views')) {
+        let views = parseInt(localStorage.getItem('views')) + 1;
+        localStorage.setItem('views', views);
+        document.getElementById('views').textContent = views;
+      } else {
+        localStorage.setItem('views', 1);
+        document.getElementById('views').textContent = 1;
+      }
+    }
+
+    // Historique du chat
+    function initChatHistory() {
+      const chat = document.getElementById('chat');
+      
+      chatHistory.forEach(entry => {
+        const isAmazighUser = /[\u2D30-\u2D7F]/.test(entry.user);
+        const isAmazighBot = /[\u2D30-\u2D7F]/.test(entry.bot);
+        
+        chat.innerHTML += `
+          <div>
+            <b>Vous :</b> ${entry.user}
+            <span class="lang-indicator ${isAmazighUser ? 'lang-ber' : 'lang-fr'}">
+              ${isAmazighUser ? 'ⵜⴰⵎⴰⵣⵉⵖⵜ' : 'FR'}
+            </span>
+          </div>
+          <div>
+            <b>Bot :</b> ${entry.bot}
+            <span class="lang-indicator ${isAmazighBot ? 'lang-ber' : 'lang-fr'}">
+              ${isAmazighBot ? 'ⵜⴰⵎⴰⵣⵉⵖⵜ' : 'FR'}
+            </span>
+          </div>
+        `;
+      });
+      
+      if (chatHistory.length > 0) {
+        chat.scrollTop = chat.scrollHeight;
+      }
+    }
+
+    // Initialisation TTS
+    function initTTS() {
+      if (!('speechSynthesis' in window)) {
+        console.warn('TTS non supporté');
+        ttsEnabled = false;
+        document.getElementById('toggleAutoTTS').disabled = true;
+        document.getElementById('speakBtn').disabled = true;
+        return;
+      }
+
+      speechSynthesis.onvoiceschanged = populateVoiceList;
+      if (speechSynthesis.getVoices().length > 0) populateVoiceList();
+
+      // Restaurer les paramètres TTS
+      const savedRate = localStorage.getItem('ttsRate');
+      if (savedRate) {
+        document.getElementById('rateControl').value = savedRate;
+      }
+      
+      document.getElementById('toggleAutoTTS').textContent = `Auto TTS: ${autoSpeak ? 'ON' : 'OFF'}`;
+    }
+
+    // Gestion des événements
+    function initEventListeners() {
+      document.getElementById('toggleAutoTTS').addEventListener('click', toggleAutoTTS);
+      document.getElementById('speakBtn').addEventListener('click', speakLastResponse);
+      document.getElementById('stopSpeakBtn').addEventListener('click', stopSpeaking);
+      document.getElementById('voiceSelect').addEventListener('change', setVoice);
+      document.getElementById('rateControl').addEventListener('input', setRate);
+      document.getElementById('userInput').addEventListener('keypress', e => e.key === 'Enter' && sendMessage());
+
+      // Suggestions
+      const input = document.getElementById('userInput');
+      const suggestionsBox = document.getElementById('suggestions');
+
+      input.addEventListener('input', () => {
+        const query = input.value.trim().toLowerCase();
+        if (query.length < 1) {
+          suggestionsBox.innerHTML = '';
+          return;
+        }
+
+        const suggestions = Object.keys(dictionary).filter(key => 
+          key.toLowerCase().includes(query)
+        ).slice(0, 5);
+
+        suggestionsBox.innerHTML = suggestions.map(item => 
+          `<div onclick="this.parentNode.innerHTML='';document.getElementById('userInput').value='${item.replace(/'/g, "\\'")}'">${item}</div>`
+        ).join('');
+      });
+    }
+
+    // Fonctions du chat
+    function sendMessage() {
+      const input = document.getElementById('userInput');
+      const message = input.value.trim();
+      
+      if (!message) return;
+
+      const chat = document.getElementById('chat');
+      const isAmazigh = /[\u2D30-\u2D7F]/.test(message);
+      
+      chat.innerHTML += `
+        <div>
+          <b>Vous :</b> ${message}
+          <span class="lang-indicator ${isAmazigh ? 'lang-ber' : 'lang-fr'}">
+            ${isAmazigh ? 'ⵜⴰⵎⴰⵣⵉⵖⵜ' : 'FR'}
+          </span>
+        </div>
+      `;
+      
+      // Recherche dans le dictionnaire
+      let response = "Je n'ai pas compris. Pouvez-vous reformuler ?";
+      const lowerMessage = message.toLowerCase();
+      
+      for (const [key, value] of Object.entries(dictionary)) {
+        if (lowerMessage.includes(key.toLowerCase())) {
+          response = value;
+          break;
+        }
+      }
+      
+      const isAmazighResponse = /[\u2D30-\u2D7F]/.test(response);
+      
+      chat.innerHTML += `
+        <div>
+          <b>Bot :</b> ${response}
+          <span class="lang-indicator ${isAmazighResponse ? 'lang-ber' : 'lang-fr'}">
+            ${isAmazighResponse ? 'ⵜⴰⵎⴰⵣⵉⵖⵜ' : 'FR'}
+          </span>
+        </div>
+      `;
+      
+      // Sauvegarde dans l'historique
+      chatHistory.push({
+        user: message,
+        bot: response
+      });
+      localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+      
+      input.value = '';
+      chat.scrollTop = chat.scrollHeight;
+      if (autoSpeak) speak(response);
+    }
+
+    function resetHistory() {
+      chatHistory = [];
+      localStorage.setItem('chatHistory', JSON.stringify(chatHistory));
+      document.getElementById('chat').innerHTML = '';
+    }
+
+    function promptSearch() {
+      const query = prompt("Entrez votre recherche web:");
+      if (query) {
+        document.getElementById('userInput').value = `/search ${query}`;
+        sendMessage();
+      }
+    }
+
+    // Fonctions TTS
+    function populateVoiceList() {
+      const voiceSelect = document.getElementById('voiceSelect');
+      voiceSelect.innerHTML = '';
+      
+      // Voices natives du navigateur
+      const browserVoices = speechSynthesis.getVoices();
+      const preferredBrowserVoices = [
+        ...browserVoices.filter(v => v.lang.includes('fr')),
+        ...browserVoices.filter(v => v.lang.includes('ar')),
+        ...browserVoices
+      ].filter((v, i, a) => a.findIndex(t => t.name === v.name) === i);
+
+      // Ajouter les voix Amazigh (virtuelles)
+      const amazighVoices = [
+        { name: "ⵜⴰⵛⵍⵃⵉⵜ (Tachelhit)", lang: "ber-MA", isAmazigh: true },
+        { name: "ⵜⴰⵔⵉⴼⵉⵜ (Tarifit)", lang: "ber-MA", isAmazigh: true }
+      ];
+
+      [...amazighVoices, ...preferredBrowserVoices].forEach(voice => {
+        const option = document.createElement('option');
+        option.textContent = voice.name + (voice.lang ? ` (${voice.lang})` : '');
+        option.setAttribute('data-lang', voice.lang || '');
+        option.setAttribute('data-is-amazigh', voice.isAmazigh || false);
+        voiceSelect.appendChild(option);
+      });
+
+      // Sélectionner la dernière voix utilisée
+      Array.from(voiceSelect.options).forEach(option => {
+        if (option.getAttribute('data-lang').includes(ttsConfig.currentVoice)) {
+          option.selected = true;
+        }
+      });
+    }
+
+    async function speakAmazigh(text, dialect = 'tarifit') {
+      try {
+        if (currentAudio) {
+          currentAudio.pause();
+          currentAudio = null;
+        }
+        
+        const response = await axios.post(ttsConfig.apiUrl, {
+          data: [text, dialect]
+        });
+        
+        const audioData = response.data.data[0];
+        const audio = new Audio(`data:audio/wav;base64,${audioData}`);
+        audio.play();
+        currentAudio = audio;
+        
+        return audio;
+      } catch (error) {
+        console.error("Erreur TTS Amazigh:", error);
+        // Fallback au TTS navigateur
+        speakNative(text);
+      }
+    }
+
+    function speak(text) {
+      if (!ttsEnabled) return;
+      stopSpeaking();
+      
+      const voiceSelect = document.getElementById('voiceSelect');
+      const selectedOption = voiceSelect.selectedOptions[0];
+      const isAmazigh = selectedOption.getAttribute('data-is-amazigh') === 'true';
+      
+      // Détection automatique de la langue
+      const isAmazighText = /[\u2D30-\u2D7F]/.test(text);
+      
+      if (isAmazigh || isAmazighText) {
+        const dialect = selectedOption.textContent.includes('Tachelhit') ? 'tachelhit' : 'tarifit';
+        currentUtterance = speakAmazigh(text, dialect);
+      } else {
+        speakNative(text);
+      }
+    }
+
+    function speakNative(text) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = parseFloat(localStorage.getItem('ttsRate')) || 1;
+      
+      const selectedVoice = document.getElementById('voiceSelect').selectedOptions[0];
+      if (selectedVoice) {
+        const voices = speechSynthesis.getVoices();
+        const voice = voices.find(v => v.name === selectedVoice.textContent.split(' (')[0]);
+        if (voice) utterance.voice = voice;
+      }
+      
+      currentUtterance = utterance;
+      speechSynthesis.speak(utterance);
+    }
+
+    function stopSpeaking() {
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+      }
+      speechSynthesis.cancel();
+      currentUtterance = null;
+    }
+
+    function speakLastResponse() {
+      const messages = document.getElementById('chat').querySelectorAll('div');
+      if (messages.length > 0) {
+        speak(messages[messages.length - 1].textContent.replace('Bot : ', ''));
+      }
+    }
+
+    function toggleAutoTTS() {
+      autoSpeak = !autoSpeak;
+      localStorage.setItem('autoTTS', autoSpeak);
+      document.getElementById('toggleAutoTTS').textContent = `Auto TTS: ${autoSpeak ? 'ON' : 'OFF'}`;
+    }
+
+    function setVoice() {
+      const selectedOption = this.selectedOptions[0];
+      ttsConfig.currentVoice = selectedOption.getAttribute('data-lang');
+      localStorage.setItem('ttsVoice', ttsConfig.currentVoice);
+    }
+
+    function setRate(e) {
+      localStorage.setItem('ttsRate', e.target.value);
+    }
+  </script>
+</body>
+</html>
