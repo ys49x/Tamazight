@@ -1,5 +1,5 @@
 # Tamazight
-tamazight chatboot verssin 5  
+tamazight chatboot verssion 5  
 now the chatbot work offline no need conexion only for tts api
 support multiples languages english français latin tarifit & ⵜⵉⴼⵉⵏⴰⵖ
 L'ets creat awsome Amazigh chatbot
