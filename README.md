@@ -10,3 +10,4 @@ with awsome futur and free open source if you like this projet just help me to a
 besse7etekoum
 copyleft for All imazighen
 
+<img width="512" height="331" alt="icon-512x512" src="https://github.com/user-attachments/assets/e6597c12-cd99-44e9-b176-632574fd73e2" />
